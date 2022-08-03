@@ -52,9 +52,9 @@ export class ValueTypeInputComponent implements OnDestroy, OnChanges, ControlVal
 
     @Input() value = null;
     @Input() index: number;
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() onChange = new EventEmitter();
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() advancedOutputs = new EventEmitter();
     @Input() type: string;
     @Input() step: number = null;
@@ -73,7 +73,7 @@ export class ValueTypeInputComponent implements OnDestroy, OnChanges, ControlVal
     _onChange: any = () => { };
 
     constructor(private resolver: ComponentFactoryResolver,
-        @Inject(INPUT_TYPE_ITEM_HANDLER) private inputTypeItemHandler: InputTypeItem[]) { }
+                @Inject(INPUT_TYPE_ITEM_HANDLER) private inputTypeItemHandler: InputTypeItem[]) { }
 
     setInputValue(value) {
         this.value = value;
@@ -129,7 +129,7 @@ export class ValueTypeInputComponent implements OnDestroy, OnChanges, ControlVal
         this.writeValue(this.value);
     }
 
-    private getInputItemImplementationClass(type: string): Type<{}> {
+    private getInputItemImplementationClass(type: string): Type<any> {
         for (const handler of this.inputTypeItemHandler) {
             if (handler.type === type) {
                 return handler.implementationClass;
@@ -138,7 +138,7 @@ export class ValueTypeInputComponent implements OnDestroy, OnChanges, ControlVal
         return this.getDefaultImplementationClass();
     }
 
-    private getDefaultImplementationClass(): Type<{}> {
+    private getDefaultImplementationClass(): Type<any> {
         for (const handler of this.inputTypeItemHandler) {
             if (handler.type === 'json') {
                 return handler.implementationClass;

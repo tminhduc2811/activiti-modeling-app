@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { AppConfigService, InitialUsernamePipe, TranslationMock, TranslationService } from '@alfresco/adf-core';
+import { AppConfigService, InitialUsernamePipe, TranslationMock, TranslationService, UserAccessService } from '@alfresco/adf-core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -23,16 +23,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatMenuModule } from '@angular/material/menu';
 import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { TranslateModule } from '@ngx-translate/core';
 import { of } from 'rxjs';
-import { AuthTokenProcessorService } from '../../../services/auth.service';
 import { UserInfoMenuComponent } from './user-info-menu.component';
 
 describe('UserInfoMenuComponent', () => {
 
     let fixture: ComponentFixture<UserInfoMenuComponent>;
-    let authService: AuthTokenProcessorService;
+    let userAccessService: UserAccessService;
 
     function clickOnUserMenu() {
         const menu = fixture.debugElement.query(By.css('.ama-user-initials'));
@@ -53,13 +53,17 @@ describe('UserInfoMenuComponent', () => {
                 InitialUsernamePipe
             ],
             providers: [
-                AuthTokenProcessorService,
+                UserAccessService,
                 AppConfigService,
+                {
+                    provide: Router,
+                    useValue: { navigate: jest.fn() }
+                },
                 {
                     provide: Store,
                     useValue: {
-                      dispatch: () => {},
-                      select: () => of({})
+                        dispatch: () => {},
+                        select: () => of({})
                     }
                 },
                 {
@@ -75,7 +79,7 @@ describe('UserInfoMenuComponent', () => {
 
     beforeEach(() => {
         fixture = TestBed.createComponent(UserInfoMenuComponent);
-        authService = TestBed.inject(AuthTokenProcessorService);
+        userAccessService = TestBed.inject(UserAccessService);
         fixture.detectChanges();
     });
 
@@ -85,7 +89,7 @@ describe('UserInfoMenuComponent', () => {
     });
 
     it('should display admin option in user menu if user is admin', () => {
-        spyOn(authService, 'hasRole').and.returnValue(true);
+        spyOn(userAccessService, 'hasGlobalAccess').and.returnValue(true);
         clickOnUserMenu();
         const adminOption = fixture.debugElement.query(By.css('.ama-user-menu-admin'));
 
@@ -93,7 +97,7 @@ describe('UserInfoMenuComponent', () => {
     });
 
     it('should not display admin option when the user is not admin', () => {
-        spyOn(authService, 'hasRole').and.returnValue(false);
+        spyOn(userAccessService, 'hasGlobalAccess').and.returnValue(false);
         clickOnUserMenu();
         const adminOption = fixture.debugElement.query(By.css('.ama-user-menu-admin'));
 

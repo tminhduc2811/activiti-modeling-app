@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { PROJECT, Project } from '@alfresco-dbp/modeling-shared/sdk';
 
 export const mockProject: Project = {
@@ -22,6 +23,7 @@ export const mockProject: Project = {
     description: 'description',
     version: '0.0.1',
     type: PROJECT,
+    favorite: false,
     createdBy: 'user',
     creationDate: new Date(),
     lastModifiedBy: 'user',

@@ -30,6 +30,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule } from '@angular/material/dialog';
 import { VariableSelectorsModule } from '../variable-selectors/variable-selectors.module';
+import { MappingDialogSelectedTabPipe } from './mapping-dialog-selected-tab.pipe';
+import { MappingDialogSavePipe } from './mapping-dialog-save.pipe';
 
 @NgModule({
     imports: [
@@ -45,7 +47,7 @@ import { VariableSelectorsModule } from '../variable-selectors/variable-selector
         VariableSelectorsModule
     ],
     providers: [DialogService, InputMappingDialogService, OutputMappingDialogService],
-    declarations: [MappingDialogComponent],
+    declarations: [MappingDialogComponent, MappingDialogSelectedTabPipe, MappingDialogSavePipe],
     exports: [MappingDialogComponent]
 })
 export class MappingDialogModule { }

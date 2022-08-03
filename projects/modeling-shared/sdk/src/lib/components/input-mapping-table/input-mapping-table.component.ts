@@ -24,7 +24,7 @@ import { Subject } from 'rxjs';
 import { MappingDialogData, VariableMappingType } from '../../services/mapping-dialog.service';
 
 export interface ParameterSelectOption {
-    id: string | Symbol;
+    id: string | symbol;
     name: string;
 }
 export interface ParametersSelectOptions {
@@ -78,6 +78,12 @@ export class InputMappingTableComponent implements OnChanges {
     @Input()
     expressionSyntax: ExpressionSyntax = ExpressionSyntax.JUEL;
 
+    @Input()
+    enableVariableSelection = true;
+
+    @Input()
+    enableValueSelection = true;
+
     @Output()
     update = new EventEmitter<ServiceParameterMapping>();
 
@@ -107,7 +113,7 @@ export class InputMappingTableComponent implements OnChanges {
 
     selectVariable(
         selection: {
-            type: MappingType,
+            type: MappingType;
             value: any;
         },
         param: ConnectorParameter
@@ -173,7 +179,9 @@ export class InputMappingTableComponent implements OnChanges {
             selectedRow: parameterRow,
             inputMappingUpdate$,
             extensionObject: { ...this.extensionObject, editDialogKeyHeader: this.editDialogKeyHeader, editDialogValueHeader: this.editDialogValueHeader },
-            expressionSyntax: this.expressionSyntax
+            expressionSyntax: this.expressionSyntax,
+            enableValueSelection: this.enableValueSelection,
+            enableVariableSelection: this.enableVariableSelection
         };
 
         this.dialogService.openDialog(MappingDialogComponent, {

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export interface EntityDialogForm {
     id?: string;
     name: string;
@@ -40,6 +41,6 @@ export interface EntityDialogPayload {
     action: any;
     submitData?: any;
     navigateTo?: boolean;
-    callback?: Function;
+    callback?: () => any;
     dialog?: any;
 }

@@ -79,15 +79,15 @@ describe('AssignmentDialogComponent', () => {
         candidateGroups: [],
         assignmentUpdate$: new Subject<AssignmentModel>(),
         shapeId: 'shapeId'
-      };
+    };
 
-      const mockOauthApi = {
+    const mockOauthApi = {
         oauth2Auth: {
             callCustomApi: () => Promise.resolve([])
         }
     };
 
-      function openSelect() {
+    function openSelect() {
         const dropdown = fixture.debugElement.query(By.css('.mat-select-trigger'));
         dropdown.triggerEventHandler('click', null);
         fixture.detectChanges();
@@ -131,9 +131,7 @@ describe('AssignmentDialogComponent', () => {
                 {
                     provide: Store,
                     useValue: {
-                        select: jest.fn().mockImplementation((selector) => {
-                            return mockStreams.assignments;
-                        }),
+                        select: jest.fn().mockImplementation(() => mockStreams.assignments),
                         dispatch: jest.fn()
                     }
                 }
@@ -301,7 +299,7 @@ describe('AssignmentDialogComponent', () => {
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId',
                 processId: 'Process_12345678'
-              };
+            };
             fixture.detectChanges();
             component.processVariables$ = mockStreams.processVariables;
             mockStreams.processVariables.next(mockProcessVariable);
@@ -331,7 +329,7 @@ describe('AssignmentDialogComponent', () => {
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId',
                 processId: 'Process_12345678'
-              };
+            };
             fixture.detectChanges();
             component.processVariables$ = mockStreams.processVariables;
             mockStreams.processVariables.next(mockProcessVariable);
@@ -360,7 +358,7 @@ describe('AssignmentDialogComponent', () => {
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId',
                 processId: 'Process_12345678'
-              };
+            };
             fixture.detectChanges();
             component.processVariables$ = mockStreams.processVariables;
             mockStreams.processVariables.next(mockProcessVariable);
@@ -392,7 +390,7 @@ describe('AssignmentDialogComponent', () => {
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId',
                 processId: 'Process_12345678'
-              };
+            };
             fixture.detectChanges();
             component.processVariables$ = mockStreams.processVariables;
             mockStreams.processVariables.next(mockProcessVariable);
@@ -416,7 +414,7 @@ describe('AssignmentDialogComponent', () => {
                 candidateGroups: [],
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId'
-              };
+            };
             fixture.detectChanges();
             await fixture.whenStable();
 
@@ -449,10 +447,10 @@ describe('AssignmentDialogComponent', () => {
 
         it('Should reset the identity values if the user change tab (static/expression)', async () => {
             mockStreams.assignments.next({
-                    type: AssignmentType.identity,
-                    assignment: AssignmentMode.candidates,
-                    id: 'mock-shape-id'
-                });
+                type: AssignmentType.identity,
+                assignment: AssignmentMode.candidates,
+                id: 'mock-shape-id'
+            });
             fixture.detectChanges();
             await fixture.whenStable();
 
@@ -475,23 +473,23 @@ describe('AssignmentDialogComponent', () => {
 
         it('Should reset the expression values if the user change tab (static/identity)', async () => {
             mockStreams.assignments.next({
-                    type: AssignmentType.expression,
-                    assignment: AssignmentMode.candidates,
-                    id: 'mock-shape-id'
-                });
+                type: AssignmentType.expression,
+                assignment: AssignmentMode.candidates,
+                id: 'mock-shape-id'
+            });
             component.settings = {
                 assignee: [],
                 candidateUsers: [mockCandidates.candidateUsers],
                 candidateGroups: [mockCandidates.candidateGroups],
                 assignmentUpdate$: new Subject<AssignmentModel>(),
                 shapeId: 'shapeId'
-                };
+            };
             fixture.detectChanges();
             await fixture.whenStable();
 
-            expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates, 'Before tab change');
+            expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates);
             component.onTabChange({index: AssignmentTabs.STATIC, tab: null});
-            expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(mockEmptyCandidates), 'After tab change');
+            expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(mockEmptyCandidates));
         });
     });
 
@@ -522,17 +520,17 @@ describe('AssignmentDialogComponent', () => {
 
             it('Should reload the identity candidate values if the user change to original tab', async () => {
                 mockStreams.assignments.next({
-                        type: AssignmentType.identity,
-                        assignment: AssignmentMode.candidates,
-                        id: 'mock-shape-id'
-                    });
+                    type: AssignmentType.identity,
+                    assignment: AssignmentMode.candidates,
+                    id: 'mock-shape-id'
+                });
                 component.settings = {
                     assignee: [],
                     candidateUsers: ['mock candidateUser'],
                     candidateGroups: ['mock candidateGroup'],
                     assignmentUpdate$: new Subject<AssignmentModel>(),
                     shapeId: 'shapeId'
-                  };
+                };
                 fixture.detectChanges();
                 await fixture.whenStable();
 
@@ -565,19 +563,19 @@ describe('AssignmentDialogComponent', () => {
                     candidateGroups: [mockCandidates.candidateGroups],
                     assignmentUpdate$: new Subject<AssignmentModel>(),
                     shapeId: 'shapeId'
-                    };
+                };
                 fixture.detectChanges();
                 await fixture.whenStable();
 
-                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates, 'Before tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates);
 
                 component.onTabChange({index: AssignmentTabs.STATIC, tab: null});
                 fixture.detectChanges();
-                expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(mockEmptyCandidates), 'After tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(mockEmptyCandidates));
 
                 component.onTabChange({index: AssignmentTabs.EXPRESSION, tab: null});
                 fixture.detectChanges();
-                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates, 'Before tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates);
             });
         });
 
@@ -634,11 +632,11 @@ describe('AssignmentDialogComponent', () => {
                     candidateGroups: [mockCandidates.candidateGroups],
                     assignmentUpdate$: new Subject<AssignmentModel>(),
                     shapeId: 'shapeId'
-                    };
+                };
                 fixture.detectChanges();
                 await fixture.whenStable();
 
-                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates, 'Before tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates);
 
                 openSelect();
                 fixture.detectChanges();
@@ -646,14 +644,14 @@ describe('AssignmentDialogComponent', () => {
                 assigneeOption.nativeElement.click();
 
                 fixture.detectChanges();
-                expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(AssignmentDialogComponent.ASSIGNEE_CONTENT), 'After tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(JSON.parse(AssignmentDialogComponent.ASSIGNEE_CONTENT));
 
                 openSelect();
                 fixture.detectChanges();
                 const candidateOption = fixture.debugElement.query(By.css('[data-automation-id="ama-assignment-option-candidates"]'));
                 candidateOption.nativeElement.click();
                 fixture.detectChanges();
-                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates, 'Before tab change');
+                expect(JSON.parse(component.expressionContent)).toEqual(mockCandidates);
             });
 
             it('Should reload static candidate values if the user change to original mode', async () => {

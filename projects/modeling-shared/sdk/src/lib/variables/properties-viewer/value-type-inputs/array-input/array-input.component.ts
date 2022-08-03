@@ -45,7 +45,7 @@ export interface ArrayInputExtendedProperties {
 })
 export class PropertiesViewerArrayInputComponent implements OnChanges {
 
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() change = new EventEmitter();
     @Input() value: any[];
     @Input() disabled: boolean;
@@ -114,9 +114,7 @@ export class PropertiesViewerArrayInputComponent implements OnChanges {
 
             this.filteredItems = this.arrayCtrl.valueChanges.pipe(
                 startWith(null),
-                map((item: string) => {
-                    return item ? this.extendedProperties.getFilteredAutocompleteValues(item) : this.extendedProperties.getDefaultAutocompleteValues();
-                })
+                map((item: string) => item ? this.extendedProperties.getFilteredAutocompleteValues(item) : this.extendedProperties.getDefaultAutocompleteValues())
             );
         }
     }

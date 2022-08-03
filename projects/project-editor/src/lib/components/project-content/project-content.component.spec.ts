@@ -18,11 +18,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProjectContentComponent } from './project-content.component';
 import { Store } from '@ngrx/store';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { ToolbarModule } from '@alfresco/adf-core';
-import { ProjectEditorState, PROJECT_CONTEXT_MENU_OPTIONS, OpenSaveAsProjectDialogAction, SaveAsProjectAttemptAction, AmaApi, ExportProjectAction } from '@alfresco-dbp/modeling-shared/sdk';
+import {
+    ProjectEditorState, PROJECT_CONTEXT_MENU_OPTIONS, OpenSaveAsProjectDialogAction, SaveAsProjectAttemptAction, AmaApi, ExportProjectAction
+} from '@alfresco-dbp/modeling-shared/sdk';
 import { of } from 'rxjs';
 import { By } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
@@ -33,6 +34,7 @@ import { mockProject } from './project-content.mock';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ExportProjectAttemptAction } from '../../store/project-editor.actions';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 describe('ProjectContentComponent', () => {
     let fixture: ComponentFixture<ProjectContentComponent>;
@@ -44,7 +46,7 @@ describe('ProjectContentComponent', () => {
             imports: [
                 CommonModule,
                 RouterTestingModule,
-                MatIconModule,
+                MatIconTestingModule,
                 MatButtonModule,
                 MatMenuModule,
                 ToolbarModule,
@@ -65,11 +67,6 @@ describe('ProjectContentComponent', () => {
                 { provide: PROJECT_CONTEXT_MENU_OPTIONS, useValue: [] }
             ],
             schemas: [NO_ERRORS_SCHEMA]
-        }).overrideModule(MatIconModule, {
-            remove: {
-                declarations: [MatIcon],
-                exports: [MatIcon]
-            }
         });
     });
 

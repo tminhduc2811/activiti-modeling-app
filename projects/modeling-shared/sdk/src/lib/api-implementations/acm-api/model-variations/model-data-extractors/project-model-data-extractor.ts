@@ -16,17 +16,17 @@
  */
 
 import { ContentModel, ContentModelXML } from '../../../../api/types';
-import { getXmlContentByTagName } from './getXmlContentByTagName.helper';
+import { getXmlContentByTagName } from './get-xml-content-by-tag-name.helper';
 
 export function extractProjectModelData(property: string, content: ContentModelXML, metadata: ContentModel) {
     const description = getXmlContentByTagName('description', content);
 
     switch (property) {
-        case 'name':
-            return metadata.name;
-        case 'description':
-            return description;
-        default:
-            return null;
+    case 'name':
+        return metadata.name;
+    case 'description':
+        return description;
+    default:
+        return null;
     }
 }

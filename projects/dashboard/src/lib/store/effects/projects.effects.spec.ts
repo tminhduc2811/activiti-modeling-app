@@ -53,8 +53,6 @@ import {
     SaveAsProjectDialogPayload,
     SaveAsProjectAttemptAction,
     OpenSaveAsProjectDialogAction,
-    AddToFavoritesProjectAttemptAction,
-    RemoveFromFavoritesProjectAttemptAction,
     GetFavoriteProjectsAttemptAction,
     GetFavoriteProjectsSuccessAction
 } from '@alfresco-dbp/modeling-shared/sdk';
@@ -248,7 +246,7 @@ describe('ProjectsEffects', () => {
         it('should navigate when project created successfully', () => {
             spyOn(router, 'navigate');
             actions$ = of(new CreateProjectSuccessAction(mockProject));
-            // tslint:disable-next-line: rxjs-no-ignored-subscribe
+            // eslint-disable-next-line rxjs/no-ignored-subscribe
             effects.createProjectSuccessEffect$.subscribe();
             expect(router.navigate).toHaveBeenCalledTimes(1);
             expect(router.navigate).toHaveBeenCalledWith(['/projects', 'app-id']);

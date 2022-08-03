@@ -17,7 +17,7 @@
 
 import { CoreModule, TranslationMock, TranslationService } from '@alfresco/adf-core';
 import { CommonModule } from '@angular/common';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconModule } from '@angular/material/icon';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { By } from '@angular/platform-browser';
@@ -46,7 +46,8 @@ describe('ModelHeaderComponent', () => {
             action: mockTestCommand,
             disabled$: of(false),
             visible$: of(true),
-            showIcon$: of(true)
+            showIcon$: of(true),
+            updatedIcon$: of('save')
         },
         {
             commandName: BasicModelCommands.validate,
@@ -57,7 +58,8 @@ describe('ModelHeaderComponent', () => {
             action: mockTestCommand,
             disabled$: of(true),
             visible$: of(true),
-            showIcon$: of(true)
+            showIcon$: of(true),
+            updatedIcon$: of('done')
         },
         {
             commandName: <BasicModelCommands> 'hidden-primary',
@@ -68,7 +70,8 @@ describe('ModelHeaderComponent', () => {
             action: mockTestCommand,
             disabled$: of(false),
             visible$: of(false),
-            showIcon$: of(true)
+            showIcon$: of(true),
+            updatedIcon$: of('delete')
         }
     ];
     const menuButtons: ShowCommandButton[] = [
@@ -88,7 +91,8 @@ describe('ModelHeaderComponent', () => {
                     action: mockTestCommand,
                     disabled$: of(false),
                     visible$: of(true),
-                    showIcon$: of(true)
+                    showIcon$: of(true),
+                    updatedIcon$: of('delete')
                 },
                 {
                     commandName: <BasicModelCommands> 'hidden-secondary',
@@ -99,12 +103,14 @@ describe('ModelHeaderComponent', () => {
                     action: mockTestCommand,
                     disabled$: of(false),
                     visible$: of(false),
-                    showIcon$: of(true)
+                    showIcon$: of(true),
+                    updatedIcon$: of('delete')
                 }
             ],
             disabled$: of(false),
             visible$: of(true),
-            showIcon$: of(true)
+            showIcon$: of(true),
+            updatedIcon$: of('remove_red_eye')
         },
         {
             commandName: <BasicModelCommands> 'menu-1',
@@ -122,12 +128,14 @@ describe('ModelHeaderComponent', () => {
                     action: mockTestCommand,
                     disabled$: of(false),
                     visible$: of(false),
-                    showIcon$: of(true)
+                    showIcon$: of(true),
+                    updatedIcon$: of('delete')
                 }
             ],
             disabled$: of(false),
             visible$: of(true),
-            showIcon$: of(true)
+            showIcon$: of(true),
+            updatedIcon$: of('remove_red_eye')
         }
     ];
 
@@ -139,13 +147,13 @@ describe('ModelHeaderComponent', () => {
             return menuButtons;
         }),
         setDisable: jest.fn().mockImplementation(() => of()),
-        dispatchEvent: jest.fn().mockImplementation((value) => of()),
+        dispatchEvent: jest.fn().mockImplementation(() => of()),
     };
 
     let fixture: ComponentFixture<ModelHeaderComponent>;
     let component: ModelHeaderComponent;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 RouterTestingModule,
@@ -175,8 +183,8 @@ describe('ModelHeaderComponent', () => {
                     }
                 }
             ]
-        }).compileComponents();
-    }));
+        });
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(ModelHeaderComponent);

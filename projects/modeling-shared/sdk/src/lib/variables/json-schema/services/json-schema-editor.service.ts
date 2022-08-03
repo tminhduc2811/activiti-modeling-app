@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
+/* eslint-disable max-lines */
+import { Inject, Injectable, Optional } from '@angular/core';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { JSONSchemaInfoBasics } from '../../../api/types';
@@ -27,17 +28,24 @@ import {
     DATE_TYPE_REFERENCE,
     FILE_TYPE_REFERENCE,
     FOLDER_TYPE_REFERENCE,
+    JsonNodeCustomization,
     JSONSchemaDefinition,
     JSONTypePropertiesDefinition,
     TYPE
 } from '../models/model';
+import { DATA_MODEL_CUSTOMIZATION, DataModelCustomizer } from './data-model-customization';
+import { DefaultDataModelCustomizationService } from './default-data-model.customization.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class JsonSchemaEditorService {
 
-    constructor(private modelingJSONSchemaService: ModelingJSONSchemaService) { }
+    constructor(
+        private modelingJSONSchemaService: ModelingJSONSchemaService,
+        @Optional() @Inject(DATA_MODEL_CUSTOMIZATION) private dataModelCustomizers: DataModelCustomizer[],
+        private defaultCustomizer: DefaultDataModelCustomizationService
+    ) { }
 
     getTypes(value: JSONSchemaInfoBasics): string[] {
         let types: string[] = [];
@@ -50,12 +58,12 @@ export class JsonSchemaEditorService {
                 }
             });
         } else {
-            if (!!value.type) {
+            if (value.type) {
                 types.push(value.type as string);
             }
         }
 
-        if (!!value.$ref) {
+        if (value.$ref) {
             if (value.$ref === DATE_TYPE_REFERENCE) {
                 types.push('date');
             } else if (value.$ref === DATETIME_TYPE_REFERENCE) {
@@ -68,26 +76,26 @@ export class JsonSchemaEditorService {
                 types.push('ref');
             }
 
-        } if (!!value.enum) {
+        } if (value.enum) {
             types.push('enum');
         }
 
-        if (!!value.anyOf) {
+        if (value.anyOf) {
             types.push('anyOf');
         }
 
-        if (!!value.allOf) {
+        if (value.allOf) {
             types.push('allOf');
         }
 
-        if (!!value.oneOf) {
+        if (value.oneOf) {
             types.push('oneOf');
         }
 
         return types;
     }
 
-    setType(type: string, added: boolean, value: JSONSchemaInfoBasics) {
+    setType(type: string, added: boolean, value: JSONSchemaInfoBasics, dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]) {
         switch (type) {
             case 'date':
                 if (added) {
@@ -156,10 +164,10 @@ export class JsonSchemaEditorService {
                 if (added) {
                     this.addType(type, value);
                     if (type === 'array') {
-                        value.items = { type: 'string' };
+                        value.items = this.addItemForDataModelType(dataModelType, schema, accessor);
                     }
                     if (type === 'object') {
-                        value.properties = {};
+                        value.properties = this.addPropertyForDataModelType(dataModelType, schema, accessor);
                     }
                 } else {
                     this.removeType(type, value);
@@ -175,9 +183,9 @@ export class JsonSchemaEditorService {
     }
 
     private addType(type: string, value: JSONSchemaInfoBasics) {
-        if (!!value.type) {
+        if (value.type) {
             if (Array.isArray(value.type)) {
-                value.type.push(type);
+                (value.type as string[]).push(type);
             } else {
                 const newType: string[] = [];
                 newType.push(value.type);
@@ -191,7 +199,7 @@ export class JsonSchemaEditorService {
 
     private removeType(type: string, value: JSONSchemaInfoBasics) {
         if (Array.isArray(value.type)) {
-            const index = value.type.indexOf(type);
+            const index = (value.type as string[]).indexOf(type);
             if (index > -1) {
                 value.type.splice(index, 1);
             }
@@ -224,15 +232,15 @@ export class JsonSchemaEditorService {
     }
 
     private instanceOfJSONSchemaInfoBasics(object: any): object is JSONSchemaInfoBasics {
-        return 'type' in object || 'enum' in object || 'allOf' in object || 'anyOf' in object || 'oneOf' in object;
+        return typeof object === 'object' && ('type' in object || 'enum' in object || 'allOf' in object || 'anyOf' in object || 'oneOf' in object);
     }
 
-    advancedAttr(value: JSONSchemaInfoBasics): JSONTypePropertiesDefinition {
-        const types = this.getTypes(value);
+    advancedAttr(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): JSONTypePropertiesDefinition {
+        const types = this.getTypes(this.getNodeFromSchemaAndAccessor(schema, accessor));
 
         const attributes: JSONTypePropertiesDefinition = {};
         types.forEach(type => {
-            const typeAttributes = TYPE[type];
+            const typeAttributes = this.findCustomizer(dataModelType).getPropertiesDefinitionForType(schema, accessor, type);
             Object.assign(attributes, typeAttributes);
         });
         return Object.assign(attributes, TYPE.description);
@@ -265,6 +273,59 @@ export class JsonSchemaEditorService {
 
                 return hierarchy;
             }));
+    }
+
+    getProtectedAttributesForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): string[] {
+        const types = this.getTypes(this.getNodeFromSchemaAndAccessor(schema, accessor));
+
+        let attributes: string[] = [];
+        types.forEach(type => {
+            const protectedAttributes = this.findCustomizer(dataModelType).getProtectedAttributesByType(schema, accessor, type);
+            attributes = attributes.concat(protectedAttributes);
+        });
+
+        return [...new Set(attributes)];
+    }
+
+    getNodeCustomizationsForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): JsonNodeCustomization {
+        return this.findCustomizer(dataModelType).getNodeCustomization(schema, accessor);
+    }
+
+    addPropertyForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): JSONSchemaInfoBasics {
+        return this.findCustomizer(dataModelType).addProperty(schema, accessor);
+    }
+
+    addItemForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): JSONSchemaInfoBasics {
+        return this.findCustomizer(dataModelType).addItem(schema, accessor);
+    }
+
+    addDefinitionForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[]): JSONSchemaInfoBasics {
+        return this.findCustomizer(dataModelType).addDefinition(schema, accessor);
+    }
+
+    addChildForDataModelType(dataModelType: string, schema: JSONSchemaInfoBasics, accessor: string[], type: string): JSONSchemaInfoBasics {
+        return this.findCustomizer(dataModelType).addChild(schema, accessor, type);
+    }
+
+    getNodeFromSchemaAndAccessor(schema: JSONSchemaInfoBasics, accessor: string[]): JSONSchemaInfoBasics {
+        let value = { ...schema };
+
+        for (let index = 1; index < accessor.length; index++) {
+            value = { ...value[accessor[index]] };
+        }
+
+        return value;
+    }
+
+    private findCustomizer(dataModelType: string) {
+        if (this.dataModelCustomizers?.length > 0 && dataModelType) {
+            const dataModelCustomizer = this.dataModelCustomizers.find(customizer => customizer.getDataModelType() === dataModelType);
+            if (dataModelCustomizer) {
+                return dataModelCustomizer;
+            }
+
+        }
+        return this.defaultCustomizer;
     }
 
     private removeFilteredReferences(hierarchy: PropertyTypeItem[], filteredReferences: string[]) {

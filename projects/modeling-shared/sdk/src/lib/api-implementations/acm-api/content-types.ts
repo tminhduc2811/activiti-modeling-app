@@ -27,5 +27,8 @@ export enum ContentType {
     Trigger = 'TRIGGER',
     CustomFormWidget = 'CUSTOM-FORM-WIDGET',
     Data = 'DATA',
-    Authentication = 'AUTHENTICATION'
+    Authentication = 'AUTHENTICATION',
+    HxPDocumentType = 'HXP_DOC_TYPE',
+    HxPMixin = 'HXP_MIXIN',
+    HxPSchema = 'HXP_SCHEMA'
 }

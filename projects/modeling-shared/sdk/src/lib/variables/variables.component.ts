@@ -102,7 +102,7 @@ export class VariablesComponent implements OnInit, OnDestroy {
             const data = JSON.parse(this.editorContent);
             this.validVariables = this.validateDuplicateVariable(<EntityProperties>data);
         } catch (e) {
-            // tslint:disable-next-line:no-console
+            // eslint-disable-next-line no-console
             console.log('Error cannot parse JSON', e);
         }
     }
@@ -126,7 +126,7 @@ export class VariablesComponent implements OnInit, OnDestroy {
 
     private convertJsonStringVariablesToJsonObjects(data): void {
         for (const key in data) {
-            if (data.hasOwnProperty(key)) {
+            if (Object.prototype.hasOwnProperty.call(data, key)) {
                 if (data[key].type === 'json' && !data[key].value) {
                     data[key].value = {};
                 } else if (this.canValueBeParsedToObject(data[key])) {

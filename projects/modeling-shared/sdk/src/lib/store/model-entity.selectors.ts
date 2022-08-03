@@ -19,9 +19,18 @@ import { Injectable } from '@angular/core';
 import { createSelector } from '@ngrx/store';
 import { getEntitiesState } from './entity.selectors';
 
-export const selectModelEntityContainer = (modelType: string) => createSelector(getEntitiesState, (state: any) => state[modelType]);
-export const selectModelEntityContents = (modelType: string) => createSelector(selectModelEntityContainer(modelType), state => state.entityContents);
-export const selectModelEntity = (modelType: string, modelId: string) => createSelector(selectModelEntityContainer(modelType), state => state.entities[modelId]);
+export const selectModelEntityContainerByType = (modelType: string) => createSelector(getEntitiesState, (state: any) => state[modelType]);
+export const selectModelEntityContentsByType = (modelType: string) => createSelector(selectModelEntityContainerByType(modelType), state => state.entityContents);
+export const selectModelEntityByType = (modelType: string, modelId: string) => createSelector(selectModelEntityContainerByType(modelType), state => state.entities[modelId]);
+
+export const selectModelDraftEntityContainerByType = (modelType: string) => createSelector(
+    selectModelEntityContainerByType(modelType), state => state.draftEntities?.entities);
+export const selectModelDraftEntityContentsByType = (modelType: string) => createSelector(
+    selectModelEntityContainerByType(modelType), state => state.draftEntities?.entityContents);
+export const selectModelDraftEntityContentByTypeAndModelId = (modelType: string, modelId: string) =>
+    createSelector(selectModelEntityContainerByType(modelType), state => state.draftEntities?.entityContents[modelId]);
+export const selectModelDraftEntityByTypeAndModelId = (modelType: string, modelId: string) =>
+    createSelector(selectModelEntityContainerByType(modelType), state => state.draftEntities?.entities[modelId]);
 
 @Injectable({
     providedIn: 'root'
@@ -31,16 +40,39 @@ export class ModelEntitySelectors {
 
     selectModelContentById(modelId: string) {
         return createSelector(
-            selectModelEntityContents(this.modelType),
+            selectModelEntityContentsByType(this.modelType),
             (entityContents) => entityContents[modelId]
         );
     }
 
     selectModelMetadataById(modelId: string) {
         return createSelector(
-            selectModelEntityContainer(this.modelType),
+            selectModelEntityContainerByType(this.modelType),
             state => state.entities[modelId]
         );
     }
 
+    selectModelDraftContentById(modelId: string) {
+        return createSelector(
+            selectModelEntityContentsByType(this.modelType),
+            selectModelDraftEntityContentsByType(this.modelType),
+            (entityContents, draftEntityContents) => draftEntityContents[modelId] ?? entityContents[modelId]
+        );
+    }
+
+    selectModelDraftMetadataById(modelId: string) {
+        return createSelector(
+            selectModelEntityContainerByType(this.modelType),
+            selectModelDraftEntityContainerByType(this.modelType),
+            (state, draftState) => draftState[modelId] ?? state.entities[modelId]
+        );
+    }
+
+    selectModelDraftStateExists(modelId: string) {
+        return createSelector(
+            selectModelDraftEntityContentByTypeAndModelId(this.modelType, modelId),
+            selectModelDraftEntityByTypeAndModelId(this.modelType, modelId),
+            (draftEntityContents, draftEntity) => (draftEntityContents || draftEntity) ? true : false
+        );
+    }
 }

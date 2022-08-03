@@ -37,9 +37,7 @@ describe('CreateProcessDialogComponent', () => {
 
     const callback = jest.fn();
     const createProjectAttemptActionImplementationMock = jest.fn();
-    const createProjectAttemptActionMock = jest.fn().mockImplementation(() => {
-        return createProjectAttemptActionImplementationMock;
-    });
+    const createProjectAttemptActionMock = jest.fn().mockImplementation(() => createProjectAttemptActionImplementationMock);
 
     const mockDialogData: EntityDialogPayload = {
         title: 'mock-title',
@@ -55,7 +53,7 @@ describe('CreateProcessDialogComponent', () => {
     };
 
     beforeEach(async () => {
-        await TestBed.configureTestingModule({
+        TestBed.configureTestingModule({
             imports: [
                 TranslateModule.forRoot(),
                 NoopAnimationsModule,
@@ -70,15 +68,15 @@ describe('CreateProcessDialogComponent', () => {
             providers: [
                 provideMockStore({
                     selectors: [
-                      { selector: selectProcessCategories, value: ['Category 1', 'Category 2'] },
+                        { selector: selectProcessCategories, value: ['Category 1', 'Category 2'] },
                     ],
-                  }),
+                }),
                 { provide: TranslationService, useClass: TranslationMock },
                 { provide: MatDialogRef, useValue: { close: jest.fn() } },
                 { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
             ],
             schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
+        });
 
         createProjectAttemptActionMock.mockClear();
 

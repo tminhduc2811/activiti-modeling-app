@@ -21,7 +21,6 @@ import { CoreModule } from '@alfresco/adf-core';
 import { ExtensionsModule } from '@alfresco/adf-extensions';
 
 import { ConnectorEditorComponent } from './components/connector-editor/connector-editor.component';
-import { ConnectorEditorRoutingModule } from './router/connector-editor-routing.module';
 import {
     CodeEditorModule,
     SharedModule,
@@ -37,7 +36,7 @@ import {
     getExtensionErrorProvider,
     ModelEditorModule,
     CONNECTOR_MODEL_ENTITY_SELECTORS,
-    ModelEntitySelectors,
+    ModelEntitySelectors
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { EffectsModule } from '@ngrx/effects';
 import { ConnectorEditorEffects } from './store/connector-editor.effects';
@@ -55,13 +54,15 @@ import { DeleteConnectorCommand } from './services/commands/delete-connector.com
 import { SaveAsConnectorCommand } from './services/commands/save-as-connector.command';
 import { DownloadConnectorCommand } from './services/commands/download-connector.command';
 import { ValidateConnectorCommand } from './services/commands/validate-connector.command';
+import { ConnectorsLoaderGuard } from './router/guards/connectors-loader.guard';
+import { provideRoutes } from '@angular/router';
+import { connectorEditorTabRoutes } from './router/connector-editor-tab.routes';
 
 @NgModule({
     imports: [
         CommonModule,
         CoreModule.forChild(),
         ExtensionsModule,
-        ConnectorEditorRoutingModule,
         SharedModule,
         CodeEditorModule,
         EffectsModule.forFeature([ConnectorEditorEffects]),
@@ -78,19 +79,20 @@ import { ValidateConnectorCommand } from './services/commands/validate-connector
     declarations: [
         ConnectorEditorComponent,
     ],
-    exports: [ ConnectorEditorRoutingModule ],
     providers: [
         DeleteConnectorCommand,
         DownloadConnectorCommand,
         SaveConnectorCommand,
         SaveAsConnectorCommand,
         ValidateConnectorCommand,
+        ConnectorsLoaderGuard,
         provideTranslations('connector-editor'),
         ...getConnectorsFilterProvider(),
         ...getConnectorCreatorProvider(),
         ...getConnectorUploaderProvider(),
         ...getExtensionErrorProvider(ConnectorErrorProviderService),
         provideLogFilter(getConnectorLogInitiator()),
+        provideRoutes(connectorEditorTabRoutes),
         provideLoadableModelSchema({
             modelType: CONNECTOR,
             schemaKey: MODEL_SCHEMA_TYPE.CONNECTOR
@@ -102,4 +104,5 @@ import { ValidateConnectorCommand } from './services/commands/validate-connector
         }
     ]
 })
-export class ConnectorEditorModule {}
+export class ConnectorEditorModule {
+}

@@ -67,32 +67,25 @@ export class MainNavigationHeaderComponent implements OnInit, OnDestroy {
         ).subscribe((event: NavigationStart) => {
             this.url = event.url.split('?')[0];
             this.loadNavigationDetails();
-            this.setSearchBarVisibility();
         });
         if (!this.url) {
             this.url = this.router.url.split('?')[0];
             this.loadNavigationDetails();
-            this.setSearchBarVisibility();
         }
     }
 
-    setSearchBarVisibility() {
-       if (this.url === this.navigation.process[0]?.route.url) {
-        this.searchBarExpanded = false;
-       }
-      this.showSearchBar = (this.url === this.navigation.process[1]?.route.url);
-    }
-
     isSearchBarExpanded(value) {
-      this.searchBarExpanded = value;
+        this.searchBarExpanded = value;
     }
 
     loadNavigationDetails() {
         Object.values(this.navigation).find(data => {
             const navigationDetails = data.find(nav => this.url === nav.route.url);
             if (navigationDetails) {
-                this.headerLabel$.next(navigationDetails.header_label);
+                this.headerLabel$.next(navigationDetails.label);
                 this.actions = navigationDetails.actions;
+                this.showSearchBar = navigationDetails.showSearchBar;
+                this.searchBarExpanded = false;
             }
         });
     }

@@ -53,7 +53,7 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
         </mat-checkbox>
     `,
     styles: ['.ama-datepicker-date-input {display: flex; justify-content: space-between; width: 100%;}',
-                '.ama-datepicker-date-clear-button {font-size: 16px; height: 16px; opacity: 0.5; cursor: pointer;}'],
+        '.ama-datepicker-date-clear-button {font-size: 16px; height: 16px; opacity: 0.5; cursor: pointer;}'],
     providers: [
         { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE] },
         { provide: DatetimeAdapter, useClass: MomentDatetimeAdapter },
@@ -63,12 +63,12 @@ import { MatCheckboxChange } from '@angular/material/checkbox';
 
 export class PropertiesViewerDateTimeInputComponent implements OnChanges {
 
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() change = new EventEmitter();
     @Input() value: string;
     @Input() disabled: boolean;
     @Input() placeholder;
-    @Input() extendedProperties: { allowExpressions: boolean; } = { allowExpressions: true };
+    @Input() extendedProperties: { allowExpressions: boolean } = { allowExpressions: true };
 
     today = new Date();
     currentDateTime = false;

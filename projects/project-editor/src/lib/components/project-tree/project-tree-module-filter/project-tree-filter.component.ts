@@ -16,7 +16,9 @@
  */
 
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy, OnInit, Inject, Optional, ViewEncapsulation, SimpleChanges, OnChanges } from '@angular/core';
-import { MODEL_TYPE, ModelFilter, ModelCreator, AmaState, MODEL_CREATORS, OpenEntityDialogAction, ModelScope, CONNECTOR, AUTHENTICATION, Filter, DEFAULT_CATEGORIES } from '@alfresco-dbp/modeling-shared/sdk';
+import {
+    MODEL_TYPE, ModelFilter, ModelCreator, AmaState, MODEL_CREATORS, OpenEntityDialogAction, ModelScope, CONNECTOR, AUTHENTICATION, Filter, DEFAULT_CATEGORIES
+} from '@alfresco-dbp/modeling-shared/sdk';
 import { Store } from '@ngrx/store';
 import { AppConfigService, ItemsByCategory, SortByCategoryMapperService } from '@alfresco/adf-core';
 
@@ -29,13 +31,14 @@ import { AppConfigService, ItemsByCategory, SortByCategoryMapperService } from '
 })
 
 export class ProjectTreeFilterComponent implements OnInit, OnChanges {
+    isMenuOpen = false;
     @Input() projectId: string;
     @Input() filter: ModelFilter;
     @Input() contents: Partial<Filter>[];
     @Input() loading: boolean;
     @Input() expanded: boolean;
 
-    @Output() opened = new EventEmitter<{ projectId: string; type: string, loadData: boolean }>();
+    @Output() opened = new EventEmitter<{ projectId: string; type: string; loadData: boolean }>();
     @Output() closed = new EventEmitter<{ type: string }>();
 
     contentsByCategory: ItemsByCategory<Filter>[] = [];

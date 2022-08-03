@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { ModuleWithProviders, NgModule } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { CoreModule } from '@alfresco/adf-core';
-import { SharedModule, getProjectEditorLogInitiator, PROJECT_EDITOR_STATE_NAME, provideLogFilter, provideTranslations, FEATURES } from '@alfresco-dbp/modeling-shared/sdk';
+import { SharedModule, getProjectEditorLogInitiator, PROJECT_EDITOR_STATE_NAME, provideLogFilter, provideTranslations } from '@alfresco-dbp/modeling-shared/sdk';
 import { ProjectEffects } from './store/effects/project.effects';
 import { projectTreeReducer as tree } from './store/reducers/project-tree.reducer';
 import { ProjectContentComponent } from './components/project-content/project-content.component';
@@ -34,14 +34,14 @@ import { ProjectTreeIconsComponent } from './components/project-tree/project-tre
 import { OverlayModule } from '@angular/cdk/overlay';
 import { ExtensionsModule } from '@alfresco/adf-extensions';
 import { provideRoutes, RouterModule } from '@angular/router';
-import { Environment } from '@alfresco-dbp/adf-candidates/core/environment';
-import { projectEditorRoutes } from './router/project-editor.routes';
 import { studioProjectEditorRoutes } from './router/studio-editor-project.routes';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { ProjectElementCreateComponent } from './components/project-element-create/project-element-create.component';
 import { ProjectElementCreateDialogComponent } from './components/project-element-create-dialog/project-element-create-dialog.component';
 import { MatSelectModule } from '@angular/material/select';
 import { ProjectImportSelectListComponent } from './components/project-import-select-list/project-import-select-list.component';
+import { ProjectEmptyContentComponent } from './components/project-empty-content/project-empty-content.component';
+
 @NgModule({
     imports: [
         CommonModule,
@@ -57,6 +57,7 @@ import { ProjectImportSelectListComponent } from './components/project-import-se
     ],
     declarations: [
         ProjectContentComponent,
+        ProjectEmptyContentComponent,
         ProjectNavigationComponent,
         ProjectTreeComponent,
         ProjectTreeFilterComponent,
@@ -70,16 +71,8 @@ import { ProjectImportSelectListComponent } from './components/project-import-se
         ProjectEditorService,
         ProjectTreeHelper,
         provideTranslations('project-editor'),
-        provideLogFilter(getProjectEditorLogInitiator())
+        provideLogFilter(getProjectEditorLogInitiator()),
+        provideRoutes(studioProjectEditorRoutes)
     ]
 })
-export class ProjectEditorModule {
-    static forRoot<T extends typeof FEATURES>(environment: Environment<T>): ModuleWithProviders<ProjectEditorModule> {
-        return {
-            ngModule: ProjectEditorModule,
-            providers: [
-                ...(environment.features.studioLayout ? provideRoutes(studioProjectEditorRoutes) : provideRoutes(projectEditorRoutes) )
-            ]
-        };
-    }
-}
+export class ProjectEditorModule {}

@@ -13,6 +13,20 @@
         display: none;
     }
 
+    .ama-process-header-section {
+        display: flex;
+        color: var(--theme-text-color);
+        align-items: center;
+
+        .ama-process-header-actions {
+            width: 45%;
+        }
+
+        .ama-process-modeler-actions {
+            width: 55%;
+        }
+    }
+
     .ama-process-tab-group {
         flex: 1 1 auto;
 

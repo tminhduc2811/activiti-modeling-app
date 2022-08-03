@@ -35,6 +35,8 @@ export interface MappingDialogData {
     outputMappingUpdate$?: Subject<ServiceParameterMapping>;
     extensionObject?: any;
     expressionSyntax?: ExpressionSyntax;
+    enableVariableSelection?: boolean;
+    enableValueSelection?: boolean;
 }
 
 export enum VariableMappingType {
@@ -62,6 +64,7 @@ export abstract class MappingDialogService {
     abstract setDataSourceValue(dataSource: MappingRowModel[], i: number, value: any);
     abstract dataSourceInit(mapping: ServiceParameterMapping, parameters: ConnectorParameter[], properties: EntityProperty[]): MappingRowModel[];
     abstract createMappingFromDataSource(dataSource: MappingRowModel[]): ServiceParameterMapping;
+    abstract validateMapping(dataSource: MappingRowModel[]): boolean;
 
     getPrimitiveType(type: string) {
         for (const handler of this.inputTypeItemHandler) {
@@ -72,8 +75,8 @@ export abstract class MappingDialogService {
         return 'json';
     }
 
-    getFilteredProcessVariables(dataSource: MappingRowModel[], processProperties: EntityProperty[], i: number): EntityProperty[] {
-        let filteredProcessVariables = processProperties.filter(() => true);
+    getFilteredProcessVariables(dataSource: MappingRowModel[], processProperties: ElementVariable[], i: number): ElementVariable[] {
+        let filteredProcessVariables = processProperties.filter((property) => !property.onlyForExpression);
         const element = dataSource[i];
         if (element.type) {
             filteredProcessVariables = processProperties.filter(variable => variable.type === element.type);
@@ -90,37 +93,37 @@ export abstract class MappingDialogService {
         return filteredProcessVariables;
     }
 
-    initMappingValue(dataSource: MappingRowModel[], i: number): { variableValue: string, valueValue: any, expressionValue: string } {
+    initMappingValue(dataSource: MappingRowModel[], i: number): { variableValue: string; valueValue: any; expressionValue: string } {
         let expressionValue = '';
-        let variableValue = undefined;
-        let valueValue = undefined;
+        let variableValue;
+        let valueValue;
 
         const value = this.getDataSourceValue(dataSource, i);
 
         switch (dataSource[i].mappingValueType) {
-            case MappingValueType.variable:
-                variableValue = value;
-                break;
-            case MappingValueType.value:
-                valueValue = value;
-                if (this.getPrimitiveType(dataSource[i].type) === 'json') {
-                    expressionValue = typeof value === 'string' ? value : JSON.stringify(value, null, 4);
-                }
-                break;
-            case MappingValueType.expression:
-                if (typeof value === 'string') {
-                    expressionValue = value;
+        case MappingValueType.variable:
+            variableValue = value;
+            break;
+        case MappingValueType.value:
+            valueValue = value;
+            if (this.getPrimitiveType(dataSource[i].type) === 'json') {
+                expressionValue = typeof value === 'string' ? value : JSON.stringify(value, null, 4);
+            }
+            break;
+        case MappingValueType.expression:
+            if (typeof value === 'string') {
+                expressionValue = value;
+            } else {
+                expressionValue = JSON.stringify(value, null, 4);
+            }
+            if (this.getPrimitiveType(dataSource[i].type) === 'json') {
+                if (value) {
+                    valueValue = JSON.parse(expressionValue);
                 } else {
-                    expressionValue = JSON.stringify(value, null, 4);
+                    valueValue = value;
                 }
-                if (this.getPrimitiveType(dataSource[i].type) === 'json') {
-                    if (value) {
-                        valueValue = JSON.parse(expressionValue);
-                    } else {
-                        valueValue = value;
-                    }
-                }
-                break;
+            }
+            break;
         }
 
         return { variableValue, valueValue, expressionValue };
@@ -128,17 +131,17 @@ export abstract class MappingDialogService {
 
     getMappingValueTypeFromMappingType(type: MappingType, value: any, parameterType: string): MappingValueType {
         switch (type) {
-            case MappingType.variable:
-                return MappingValueType.variable;
-            case MappingType.static:
+        case MappingType.variable:
+            return MappingValueType.variable;
+        case MappingType.static:
+            return MappingValueType.value;
+        case MappingType.value:
+        default:
+            if (JSON.stringify(value).includes('${') && parameterType !== 'json') {
+                return MappingValueType.expression;
+            } else {
                 return MappingValueType.value;
-            case MappingType.value:
-            default:
-                if (JSON.stringify(value).includes('${') && parameterType !== 'json') {
-                    return MappingValueType.expression;
-                } else {
-                    return MappingValueType.value;
-                }
+            }
         }
     }
 }

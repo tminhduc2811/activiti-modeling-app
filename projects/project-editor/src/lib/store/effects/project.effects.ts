@@ -42,6 +42,8 @@ import {
     ExportProjectAttemptAction,
     EXPORT_PROJECT_ATTEMPT,
     ExportProjectAttemptPayload,
+    TabManagerService,
+    SetLogHistoryVisibilityAction,
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { DialogData } from '@alfresco-dbp/adf-candidates/core/dialog';
 import { ProjectEditorService } from '../../services/project-editor.service';
@@ -56,7 +58,8 @@ export class ProjectEffects {
         protected downloadService: DownloadResourceService,
         private logFactory: LogFactoryService,
         protected blobService: BlobService,
-        private modelingJSONSchemaService: ModelingJSONSchemaService
+        private modelingJSONSchemaService: ModelingJSONSchemaService,
+        private tabManagerService: TabManagerService
     ) { }
 
     @Effect()
@@ -90,7 +93,7 @@ export class ProjectEffects {
     leaveProjectEffect = this.actions$.pipe(
         ofType<RouterNavigatedAction>(ROUTER_NAVIGATED),
         filter(() => !this.router.url.startsWith('/projects')),
-        mergeMap(() => of(new LeaveProjectAction()))
+        mergeMap(() => this.leftProjectAction())
     );
 
     @Effect()
@@ -111,7 +114,7 @@ export class ProjectEffects {
                 this.modelingJSONSchemaService.initializeProjectSchema(projectId);
                 return of(new GetProjectSuccessAction(project));
             }),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.GET_PROJECT')));
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.GET_PROJECT')));
     }
 
     private exportProject(projectId: string, name: string) {
@@ -122,7 +125,7 @@ export class ProjectEffects {
                     this.logFactory.logInfo(getProjectEditorLogInitiator(), 'PROJECT_EDITOR.EXPORT_SUCCESS')
                 ];
             }),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.EXPORT_PROJECT')));
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.EXPORT_PROJECT')));
     }
 
     private exportProjectAttempt(payload: ExportProjectAttemptPayload) {
@@ -147,12 +150,11 @@ export class ProjectEffects {
                 this.logFactory.logInfo(getProjectEditorLogInitiator(), 'PROJECT_EDITOR.PROJECT_VALID')
             ]),
             catchError(response => this.getDialogData(response).pipe(
-                switchMap(dialogData => {
-                    return [
-                        this.logFactory.logError(getProjectEditorLogInitiator(), dialogData.messages),
-                        new OpenInfoDialogAction({ dialogData })
-                    ];
-                })
+                switchMap(dialogData => [
+                    this.logFactory.logError(getProjectEditorLogInitiator(), dialogData.messages),
+                    new OpenInfoDialogAction({ dialogData }),
+                    new SetLogHistoryVisibilityAction(true)
+                ])
             ))
         );
     }
@@ -181,7 +183,7 @@ export class ProjectEffects {
                 new UpdateProjectSuccessAction({ id: project.id, changes: project }),
                 new SnackbarInfoAction('NEW_STUDIO_DASHBOARD.ADD_TO_FAVORITES')
             ]),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.ADD_TO_FAVORITES'))
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.ADD_TO_FAVORITES'))
         );
     }
 
@@ -192,7 +194,12 @@ export class ProjectEffects {
                 new UpdateProjectSuccessAction({ id: project.id, changes: project }),
                 new SnackbarInfoAction('NEW_STUDIO_DASHBOARD.REMOVE_FROM_FAVORITES')
             ]),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.REMOVE_FROM_FAVORITES'))
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.REMOVE_FROM_FAVORITES'))
         );
     }
-}
+
+    private leftProjectAction(){
+        this.tabManagerService.reset();
+        return of(new LeaveProjectAction());
+    }
+ }

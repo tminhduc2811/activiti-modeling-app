@@ -19,7 +19,12 @@ import { Component, Output, EventEmitter, Input } from '@angular/core';
 @Component({
     template: `
     <mat-form-field>
-        <mat-select (selectionChange)="onChange()" [(ngModel)]="value" data-automation-id="variable-value" [disabled]="disabled" [placeholder]="(placeholder ? placeholder : 'SDK.VALUE') | translate" >
+        <mat-select
+            (selectionChange)="onChange()"
+            [(ngModel)]="value"
+            data-automation-id="variable-value"
+            [disabled]="disabled"
+            [placeholder]="(placeholder ? placeholder : 'SDK.VALUE') | translate">
             <mat-option *ngFor="let option of booleanOptions" [value]="option.value">{{option.label}}</mat-option>
         </mat-select>
     </mat-form-field>
@@ -28,7 +33,7 @@ import { Component, Output, EventEmitter, Input } from '@angular/core';
 
 export class PropertiesViewerBooleanInputComponent {
 
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() change = new EventEmitter();
     @Input() value: boolean;
     @Input() disabled: boolean;

@@ -17,7 +17,7 @@
 
 import { Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { Observable, of, zip } from 'rxjs';
+import { EMPTY, Observable, of, zip } from 'rxjs';
 import { mergeMap, catchError } from 'rxjs/operators';
 import {
     GetModelsAttemptAction,
@@ -54,7 +54,7 @@ export class EntityEffects {
             if (!loaded) {
                 return of(new GetModelsAttemptAction(action.projectId, action.modelType));
             } else {
-                return of();
+                return EMPTY;
             }
         })
     );
@@ -65,10 +65,10 @@ export class EntityEffects {
         mergeMap(action => this.getModels(action.projectId, action.modelType))
     );
 
-    private getModels(projectId: string, modelType: MODEL_TYPE): Observable<{} | GetModelsSuccessAction> {
+    private getModels(projectId: string, modelType: MODEL_TYPE): Observable<any | GetModelsSuccessAction> {
         return this.modelStorageService.fetchAll(projectId, modelType).pipe(
             mergeMap(models => of(new GetModelsSuccessAction(models, modelType))),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.LOAD_MODELS')));
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.LOAD_MODELS')));
     }
 
     private handleError(userMessage: string): Observable<SnackbarErrorAction> {

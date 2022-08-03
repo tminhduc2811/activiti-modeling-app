@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { Component, OnInit, Inject, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import {
@@ -33,13 +35,13 @@ import {
     CodeEditorComponent
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
-import { IdentityUserModel, IdentityGroupModel } from '@alfresco/adf-core';
 import { Store } from '@ngrx/store';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { AbstractControl, FormGroup, FormBuilder, Validators, FormControl, ValidatorFn, ValidationErrors } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { MatSelectChange } from '@angular/material/select';
+import { IdentityGroupModel, IdentityUserModel } from '@alfresco/adf-process-services-cloud';
 
 export interface AssignmentSettings {
     assignee: string[];
@@ -81,9 +83,9 @@ export const identityCandidateValidator: ValidatorFn = (candidateFormGroup: Form
     const candidateGroupsChips = candidateGroupsFormGroup.get('candidateGroupsChips');
 
     const isCandidateUserChipsEmpty = isCandidateFormGroupDirtyTouched && candidateUsersChips ?
-    candidateUsersChips.value === null || candidateUsersChips.value === '' : false;
+        candidateUsersChips.value === null || candidateUsersChips.value === '' : false;
     const isCandidateGroupChipsEmpty = isCandidateFormGroupDirtyTouched && candidateGroupsChips ?
-    candidateGroupsChips.value === null || candidateGroupsChips.value === '' : false;
+        candidateGroupsChips.value === null || candidateGroupsChips.value === '' : false;
 
     const hasValidationError = isCandidateUserChipsEmpty && isCandidateGroupChipsEmpty;
     return hasValidationError ? { 'custom': true } : null;

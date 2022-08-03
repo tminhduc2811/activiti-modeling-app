@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { BpmnElement } from '@alfresco-dbp/modeling-shared/sdk';
-import { async, TestBed } from '@angular/core/testing';
+import { BpmnElement, ElementVariable } from '@alfresco-dbp/modeling-shared/sdk';
+import { TestBed } from '@angular/core/testing';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { ProcessElementVariablesProviderService } from './process-element-variables-provider.service';
@@ -30,7 +30,9 @@ const element: Bpmn.DiagramElement = {
     }
 };
 
-const variables = [
+let result: ElementVariable[];
+
+const variables: ElementVariable[] = [
     {
         'id': 'c2f8729e-5056-44d2-8cd7-fb1bada7f4ba',
         'name': 'one',
@@ -51,51 +53,26 @@ const variables = [
 describe('ProcessElementVariablesProviderService', () => {
     let service: ProcessElementVariablesProviderService;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 ProcessElementVariablesProviderService,
                 {
                     provide: Store,
                     useValue: {
-                        select: jest.fn().mockImplementation(() => {
-                            return of({
-                                'c2f8729e-5056-44d2-8cd7-fb1bada7f4ba': {
-                                    'id': 'c2f8729e-5056-44d2-8cd7-fb1bada7f4ba',
-                                    'name': 'one',
-                                    'type': 'string',
-                                    'value': 'one',
-                                    'required': false
-                                },
-                                'b1b04bf1-19cb-4930-b750-eecb6f39770f': {
-                                    'id': 'b1b04bf1-19cb-4930-b750-eecb6f39770f',
-                                    'name': 'two',
-                                    'type': 'integer',
-                                    'required': false,
-                                    'value': 2
-                                },
-                                '695b2110-1060-4819-a513-400b114c9324': {
-                                    'id': '695b2110-1060-4819-a513-400b114c9324',
-                                    'name': 'three',
-                                    'type': 'boolean',
-                                    'required': false,
-                                    'value': true
-                                }
-                            });
-                        })
+                        select: jest.fn().mockImplementation(() => of(variables))
                     }
                 }
             ]
         });
-    }));
-
-    beforeEach(() => {
-        service = TestBed.inject(ProcessElementVariablesProviderService);
     });
 
-    it('should variables from element', async () => {
-        service.getVariablesFromElement(element).subscribe(vars => {
-            expect(vars).toEqual(variables);
-        });
+    beforeEach(async () => {
+        service = TestBed.inject(ProcessElementVariablesProviderService);
+        result = await service.getVariablesFromElement(element).toPromise();
+    });
+
+    it('should get the variables for the element containing the execution object', () => {
+        expect(result).toEqual([ProcessElementVariablesProviderService.EXECUTION_OBJECT, ...variables]);
     });
 });

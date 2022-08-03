@@ -16,17 +16,17 @@
  */
 
 import { Process, ProcessContent } from '../../../../api/types';
-import { getXmlContentByTagName } from './getXmlContentByTagName.helper';
+import { getXmlContentByTagName } from './get-xml-content-by-tag-name.helper';
 
 export function extractProcessData(property: string, content: ProcessContent, metadata: Process) {
     const description = getXmlContentByTagName('bpmn2:documentation', content);
 
     switch (property) {
-        case 'name':
-            return metadata.name;
-        case 'description':
-            return description;
-        default:
-            return null;
+    case 'name':
+        return metadata.name;
+    case 'description':
+        return description;
+    default:
+        return null;
     }
 }

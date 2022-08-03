@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { filter, map, take } from 'rxjs/operators';
@@ -143,7 +145,11 @@ export class ModelingJSONSchemaService {
             if (JSON.stringify(result) === JSON.stringify(schema) && Object.keys(schema).length === 1) {
                 result = flattenedReferencedSchema;
             } else {
-                result.allOf ? result.allOf.push(flattenedReferencedSchema) : result.allOf = [flattenedReferencedSchema];
+                if (result.allOf) {
+                    result.allOf.push(flattenedReferencedSchema);
+                } else {
+                    result.allOf = [flattenedReferencedSchema];
+                }
             }
             delete result.$ref;
         }
@@ -230,7 +236,7 @@ export class ModelingJSONSchemaService {
     getPrimitiveTypes(schema: JSONSchemaInfoBasics): string[] {
         let primitiveType: string[] = [];
 
-        if (!!schema) {
+        if (schema) {
             if (schema.$ref && schema.$ref.startsWith(ModelingJSONSchemaService.PRIMITIVE_DEFINITIONS_PATH)) {
                 const accessor = schema.$ref.substring(schema.$ref.lastIndexOf('#') + 2).split('/');
                 primitiveType.push(this.getMappingPrimitiveTypeForString(accessor[accessor.length - 1]));
@@ -262,15 +268,18 @@ export class ModelingJSONSchemaService {
         let type = 'json';
 
         switch (jsonSchemaType) {
-            case 'number':
-                type = 'string';
-                break;
-            case 'object':
-                type = 'json';
-                break;
-            default:
-                type = this.getMappingPrimitiveTypeForString(jsonSchemaType);
-                break;
+        case 'number':
+            type = 'string';
+            break;
+        case 'object':
+            type = 'json';
+            break;
+        case 'execution':
+            type = 'execution';
+            break;
+        default:
+            type = this.getMappingPrimitiveTypeForString(jsonSchemaType);
+            break;
         }
 
         return type;
@@ -360,7 +369,7 @@ export class ModelingJSONSchemaService {
             const result: JSONSchemaInfoBasics = {};
             Object.keys(schema).forEach(key => {
                 if (key === '$ref' && !this.getSchemaInProjectFromReference(schema[key]) && !!this.getSchemaInSchemaFromReference(schema[key], originalSchema)) {
-                    result[key] = schema[key].replace(/\#/g, ModelingJSONSchemaService.DEFINITIONS_PATH + '/' + typeIdPath.join('/'));
+                    result[key] = schema[key].replace(/#/g, ModelingJSONSchemaService.DEFINITIONS_PATH + '/' + typeIdPath.join('/'));
                 } else if (typeof schema[key] === 'object' && !Array.isArray(schema[key])) {
                     result[key] = this.fixReferences(schema[key], typeIdPath, originalSchema);
                 } else {
@@ -426,7 +435,7 @@ export class ModelingJSONSchemaService {
         if (obj instanceof Object) {
             copy = {};
             for (const attr in obj) {
-                if (obj.hasOwnProperty(attr)) {
+                if (Object.prototype.hasOwnProperty.call(obj, attr)) {
                     (<any>copy)[attr] = this.deepCopy(obj[attr]);
                 }
             }

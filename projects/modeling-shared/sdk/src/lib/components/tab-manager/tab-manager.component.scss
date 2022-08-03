@@ -1,0 +1,85 @@
+.ama-tab-models {
+    height: 100%;
+    width: 100%;
+    transition: none !important;
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+
+    .mat-tab-header {
+        background: var(--theme-card-bg-color);
+        border: none;
+    }
+
+    .mat-ink-bar {
+        background-color: white !important;
+        height: 1px;
+        transition: none;
+    }
+
+    .mat-tab-labels, .mat-tab-header-pagination-before, .mat-tab-header-pagination-after {
+        border-bottom: 1px solid var(--theme-ama-border-color);
+    }
+
+    .mat-tab-label {
+        background: var(--theme-studio-background);
+        border-right: 1px solid var(--theme-ama-border-color);
+        padding: 5px;
+        border-bottom: 1px solid var(--theme-ama-border-color);
+    }
+
+    .mat-tab-label-active {
+        border-bottom: none;
+        background: unset;
+    }
+
+    .mat-tab-label-content {
+        display: flex;
+        flex: 1;
+    }
+
+    .mat-tab-body-wrapper {
+        height: 100%;
+        width: 100%;
+    }
+
+    .ama-tab-model-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex: 1;
+    }
+
+    .ama-tab-model-dirty {
+        width: 8px;
+        height: 8px;
+        background: var(--theme-primary-color);
+        border-radius: 12px;
+    }
+
+    .ama-tab-model-icon-close {
+        font-size: 15px;
+        font-weight: bolder;
+    }
+
+    .ama-tab-title {
+        margin-right: 10px;
+    }
+
+    .ama-tab-model-icon {
+        padding-right: 5px;
+    }
+
+    .mat-button-focus-overlay {
+        background-color: transparent !important;
+    }
+
+    .mat-tab-label:focus {
+        background-color: transparent !important;
+    }
+
+}
+
+.modelingsdk-tab-manager {
+    display: flex;
+    flex: 1 0 auto;
+}

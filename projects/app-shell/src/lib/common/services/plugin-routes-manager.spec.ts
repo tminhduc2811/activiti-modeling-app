@@ -16,7 +16,7 @@
  */
 
 import { PluginRoutesManagerService } from './plugin-routes-manager.service';
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { RouterModule, Router, Route } from '@angular/router';
 import { APP_BASE_HREF } from '@angular/common';
 import { MatButtonModule, MatButton } from '@angular/material/button';
@@ -35,7 +35,7 @@ describe('PluginRoutesManagerService', () => {
     let service: PluginRoutesManagerService;
     let router: Router;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 RouterModule.forRoot([]),
@@ -44,15 +44,15 @@ describe('PluginRoutesManagerService', () => {
             providers: [
                 { provide: APP_BASE_HREF, useValue: '/' }
             ]
-        }).compileComponents();
-    }));
+        });
+    });
 
     beforeEach(() => {
         service = TestBed.inject(PluginRoutesManagerService);
         router = TestBed.inject(Router);
 
-        projectsPath = { path: 'projects', data: {}, component: MatButton },
-        dashboardPath = { path: 'dashboard', component: MatButton },
+        projectsPath = { path: 'projects', data: {}, component: MatButton };
+        dashboardPath = { path: 'dashboard', component: MatButton };
         processesPath = { path: 'processes', data: { injectTo: INJECTION_POINT }, component: MatButton };
         connectorsPath = { path: 'connectors', data: { injectTo: INJECTION_POINT }, component: MatButton };
         kittensPath = { path: 'kittens', data: { injectTo: ANOTHER_INJECTION_POINT }, component: MatButton };

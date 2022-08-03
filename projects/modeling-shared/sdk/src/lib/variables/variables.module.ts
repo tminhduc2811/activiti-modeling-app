@@ -61,6 +61,11 @@ import { ExpressionSimulatorComponent } from './expression-code-editor/component
 import { VariableIconPipe } from './expression-code-editor/pipes/variable-icon.pipe';
 import { provideExpressionSyntaxHandler } from './expression-code-editor/services/expression-syntax.provider';
 import { JuelExpressionSyntax } from './expression-code-editor/services/expression-language/juel-expression-syntax';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { PropertiesViewerFolderInputComponent } from './properties-viewer/value-type-inputs/folder-input/folder-input.component';
+import { FocusInsideElementDirective } from './json-schema/components/json-schema-editor/focus-within.directive';
+import { JsonSchemaNodeSettingsComponent } from './json-schema/components/json-schema-node-settings/json-schema-node-settings.component';
+import { AccessorPipe } from './json-schema/components/json-schema-editor/accessor.pipe';
 
 @NgModule({
     imports: [
@@ -69,7 +74,8 @@ import { JuelExpressionSyntax } from './expression-code-editor/services/expressi
         CodeEditorModule,
         SharedModule,
         MatSortModule,
-        FormsModule
+        FormsModule,
+        MatButtonToggleModule
     ],
     declarations: [
         VariablesComponent,
@@ -105,7 +111,11 @@ import { JuelExpressionSyntax } from './expression-code-editor/services/expressi
         ExpressionCodeEditorComponent,
         ExpressionCodeEditorDialogComponent,
         ExpressionSimulatorComponent,
-        VariableIconPipe
+        VariableIconPipe,
+        PropertiesViewerFolderInputComponent,
+        FocusInsideElementDirective,
+        JsonSchemaNodeSettingsComponent,
+        AccessorPipe
     ],
     providers: [
         provideInputTypeItemHandler('string', PropertiesViewerStringInputComponent),
@@ -115,7 +125,7 @@ import { JuelExpressionSyntax } from './expression-code-editor/services/expressi
         provideInputTypeItemHandler('datetime', PropertiesViewerDateTimeInputComponent),
         provideInputTypeItemHandler('json', PropertiesViewerJsonInputComponent),
         provideInputTypeItemHandler('file', PropertiesViewerFileInputComponent),
-        provideInputTypeItemHandler('folder', PropertiesViewerJsonInputComponent),
+        provideInputTypeItemHandler('folder', PropertiesViewerFolderInputComponent),
         provideInputTypeItemHandler('array', PropertiesViewerArrayInputComponent),
         provideInputTypeItemHandler('enum', PropertiesViewerEnumInputComponent, 'json'),
         provideModelingJsonSchemaProvider(RegisteredInputsModelingJsonSchemaProvider),
@@ -129,8 +139,11 @@ import { JuelExpressionSyntax } from './expression-code-editor/services/expressi
         JsonParsePipe,
         PropertyTypeSelectorSmartComponent,
         JsonSchemaEditorComponent,
+        JsonSchemaNodeSettingsComponent,
+        FocusInsideElementDirective,
         PropertiesViewerModeledObjectInputComponent,
-        ExpressionCodeEditorComponent
+        ExpressionCodeEditorComponent,
+        InputErrorDirective
     ]
 })
 export class VariablesModule { }

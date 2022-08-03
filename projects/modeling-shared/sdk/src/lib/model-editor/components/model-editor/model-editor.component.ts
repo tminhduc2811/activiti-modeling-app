@@ -77,8 +77,8 @@ export class ModelEditorComponent implements OnChanges, CanComponentDeactivate {
     private getComponentByType(type: string): Type<any> | null | never  {
         try {
             return this.modelEditors
-            .find(modelFetcher => modelFetcher.type === type)
-            .componentClass;
+                .find(modelFetcher => modelFetcher.type === type)
+                .componentClass;
         } catch (e) {
             if (e instanceof TypeError) {
                 console.error(`There is no registered editor for model type: ${this.modelType}`);
@@ -90,5 +90,9 @@ export class ModelEditorComponent implements OnChanges, CanComponentDeactivate {
 
     public canDeactivate(): Observable<boolean> {
         return this.componentReference.instance.canDeactivate?.() || of(true);
+    }
+
+    public deleteDraftState() {
+        return this.componentReference.instance.deleteDraftState?.();
     }
 }

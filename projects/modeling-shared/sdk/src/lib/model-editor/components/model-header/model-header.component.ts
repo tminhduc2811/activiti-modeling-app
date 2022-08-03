@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Component, Inject, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { combineLatest, Observable } from 'rxjs';
+import { Component, Inject, Input, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BasicModelCommands } from '../../commands/commands.interface';
 import { ButtonType, ShowCommandButton } from '../../services/command.model';
@@ -30,17 +30,18 @@ import { MODEL_COMMAND_SERVICE_TOKEN } from '../model-editor/model-editors.token
     styleUrls: [ './model-header.component.scss' ],
     encapsulation: ViewEncapsulation.None,
 })
-export class ModelHeaderComponent implements OnInit {
+export class ModelHeaderComponent implements OnInit, OnDestroy {
 
     @Input()
     modelName: string;
 
+    onDestroy$: Subject<void> = new Subject<void>();
     standardButtons: ShowCommandButton[];
     menuButtons: ShowCommandButton[];
 
     constructor(@Inject(MODEL_COMMAND_SERVICE_TOKEN)
-                private modelCommands: ModelCommandsService) {
-    }
+        private modelCommands: ModelCommandsService
+    ) { }
 
     ngOnInit() {
         this.standardButtons = this.modelCommands.getCommandButtons(ButtonType.STANDARD);
@@ -55,5 +56,10 @@ export class ModelHeaderComponent implements OnInit {
 
     onClick(commandName: BasicModelCommands) {
         this.modelCommands.dispatchEvent(commandName);
+    }
+
+    ngOnDestroy() {
+        this.onDestroy$.next();
+        this.onDestroy$.complete();
     }
 }

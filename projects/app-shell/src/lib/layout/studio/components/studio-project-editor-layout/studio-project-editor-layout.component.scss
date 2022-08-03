@@ -2,13 +2,112 @@ mat-sidenav-container.studio-project-layout {
     display: block;
     width: 100%;
     height: calc(100% - 65px);
+    /* stylelint-disable */
+    .projecteditor-release-list {
+        width: calc(100vw - 305px);
+
+        .releases {
+            height: calc(100% - 70px);
+        }
+        .releases-list-container {
+            height: calc(100% - 70px);
+        }
+
+        .adf-toolbar .mat-toolbar-single-row  {
+            height: 45px;
+        }
+    }
+
 
     .app-navigation {
         width: 300px;
     }
 
     .studio-project-layout-content {
-        height : 100%;
+        margin-right: 1px !important;
+        margin-left: 300px !important;
+
+        &-closed {
+            margin-left: 0px !important;
+
+            .modelingsdk-workbench-layout {
+                .mat-sidenav-content {
+                    margin-left: 0px !important;
+                }
+            }
+        }
+
+        .modelingsdk-workbench-layout {
+            .mat-sidenav-content {
+                margin-left: 0px !important;
+            }
+        }
+    }
+
+    .studio-project-layout-sidenav-rtl {
+        .app-navigation__section--new {
+            border-left: 1px solid var(--theme-border-color);
+        }
+
+        .ama-add-more-container {
+            right: 235px;
+        }
+
+        .ama-project-tree-filter__button.mat-button {
+            text-align: right;
+            margin: 0 32px 0 0;
+        }
+    }
+
+    .studio-project-layout-content-rtl {
+        margin-left: 1px !important;
+        margin-right: 300px !important;
+
+        .modelingsdk-workbench-layout {
+            .mat-sidenav .mat-drawer-inner-container{
+                border-right: 1px solid var(--theme-border-color);
+            }
+
+            .mat-sidenav-content {
+                margin-right: 0px !important;
+
+                .ama-toggle-tree-buttons {
+                    float: left;
+                }
+            }
+        }
+
+        .app-navigation__section--new, .ama-tab-models .mat-tab-label-active {
+            border-left: 1px solid var(--theme-border-color);
+        }
+
+        .ama-process-palette {
+            left: auto;
+        }
+
+        .modelingsdk-workbench-layout_button {
+            transform: rotate(90deg) translateX(-50%) translateY(-200%);
+            right: 0px;
+        }
+    }
+
+    .studio-project-layout-content, .studio-project-layout-content-rtl, .studio-project-layout-content-closed {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        overflow: auto;
+        position: unset;
+
+        &-section {
+            flex: 0 0;
+        }
+
+        ng-component {
+            flex: 1;
+            min-height: 0;
+        }
 
         .mat-sidenav-container {
             height: 100%;
@@ -21,47 +120,94 @@ mat-sidenav-container.studio-project-layout {
                 flex: 1;
                 flex-direction: column;
             }
-
-            .ama-canvas-editor {
-                position: unset;
-            }
         }
 
-        .mat-sidenav-content {
-              > div {
-                height: 100%;
+        .ama-model-header, .ama-process-modeler-actions {
+            border-bottom: 1px solid var(--theme-ama-border-color);
+        }
 
-                > div {
-                    display: flex;
-                    flex-direction: column;
+        .ama-editor-footer {
+            z-index: 1;
+            .mat-toolbar {
+                &.ama-log-history-toolbar {
+                    padding: 0 12px;
+                    background-color: white;
+                    border-bottom: 1px solid var(--theme-studio-background);
+                    border-top: 1px solid var(--theme-studio-background);
 
-                    ng-component {
-                        flex: 1;
-                    }
+                    .ama-log-history-controls {
+                        button {
+                            width: 24px;
+                            height: 24px;
+                            line-height: 24px;
+                            font-size: 14px;
+                            margin-left: 14px;
+                        }
 
-                    ama-projects-list {
-                        min-height: 0;
-                        flex: 1;
-                    }
+                        .ama-log-expand {
+                            display: none;
+                        }
 
-                    ama-about {
-                        overflow: auto;
-                        min-height: 0;
-                        flex: 1;
+                        .ama-log-close {
+                            font-size: 18px;
+                            padding-top: 3px;
+                        }
                     }
                 }
             }
 
-            .adf-toolbar .mat-toolbar {
-                border-left: none;
-                border-right: none;
-                height: 48px;
+            .ama-log-history {
+                .ama-log-history-panel {
+                    background-color: var(--theme-ama-log-panel-bg-color);
+                    height: 200px;
+                    overflow: auto;
+                    padding: 12px;
+                    font-family: 'Courier New', Courier, monospace;
+
+                    .ama-log-entry {
+                        margin-bottom: 8px;
+                        border-bottom: 1px solid var(--theme-studio-background);
+
+                        .ama-log-meta {
+                            color: var(--theme-primary-color);
+                            margin: 2%;
+
+                            mat-icon {
+                                font-size: 16px;
+                                height: 16px;
+                                width: 16px;
+                                position: relative;
+                                top: 4px;
+                                left: -4px;
+                            }
+
+                            .ama-log-initiator {
+                                font-weight: bold;
+                            }
+                        }
+
+                        .ama-log-content {
+                            margin: 0 2% 2%;
+
+                            div {
+                                margin-bottom: 1%;
+                            }
+                        }
+
+                        &.ama-log-warning .ama-log-meta {
+                            color: var(--theme-accent-color);
+                        }
+
+                        &.ama-log-error .ama-log-meta {
+                            color: var(--theme-warn-color);
+                        }
+                    }
+                }
+            }
+
+            .ama-editor-footer-toolbar {
+                display: none;
             }
         }
-
-        .mat-sidenav {
-            background-color: var(--theme-app-bar-bg-color);
-        }
     }
-
 }

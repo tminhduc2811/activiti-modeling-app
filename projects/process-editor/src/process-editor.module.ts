@@ -29,7 +29,6 @@ import { ProcessModelerServiceImplementation } from './services/process-modeler.
 import { ProcessEditorService } from './services/process-editor.service';
 import { ProcessEditorEffects } from './store/process-editor.effects';
 import { StoreModule } from '@ngrx/store';
-import { ProcessEditorRoutingModule } from './router/process-editor-routing.module';
 import { CardViewPropertiesFactory } from './services/cardview-properties/cardview-properties.factory';
 import { Title } from '@angular/platform-browser';
 import {
@@ -99,7 +98,7 @@ import { AssignmentDialogComponent } from './components/assignment/assignment-di
 import { ProcessTaskAssignmentEffects } from './store/process-task-assignment.effects';
 import { CardViewTaskAssignmentItemComponent } from './services/cardview-properties/task-assignment-item/task-assignment-item.component';
 import { TaskAssignmentService } from './services/cardview-properties/task-assignment-item/task-assignment.service';
-import { transformJsonSchema } from './services/transformJsonSchema';
+import { transformJsonSchema } from './services/transform-json-schema';
 import { CardViewProcessNameItemComponent } from './services/cardview-properties/process-name-item/process-name-item.component';
 import { ProcessConnectorService } from './services/process-connector-service';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -125,13 +124,18 @@ import { DownloadProcessCommand } from './services/commands/download-process.com
 import { ParticipantElementVariablesProviderService } from './services/participant-element-variables-provider.service';
 import { SaveAsProcessCommand } from './services/commands/save-as-process.command';
 import { DownloadProcessSVGImageCommand } from './services/commands/download-process-svg-image.command';
+import { CardProcessVersionItemComponent } from './services/cardview-properties/process-version-item/process-version-item.component';
+import { ProcessModelerActionsComponent } from './components/process-modeler/process-modeler-actions/process-modeler-actions.component';
+import { provideRoutes } from '@angular/router';
+import { processEditorTabRoutes } from './router/process-editor-tab.routes';
+import { ProcessesLoaderGuard } from './router/guards/processes-loader.guard';
+import { ProcessDeactivateGuard } from './router/guards/process-deactivate.guard';
 
 @NgModule({
     imports: [
         CommonModule,
         CoreModule.forChild(),
         ProcessServicesCloudModule,
-        ProcessEditorRoutingModule,
         EffectsModule.forFeature([
             ProcessEditorEffects,
             ProcessVariablesEffects,
@@ -168,6 +172,7 @@ import { DownloadProcessSVGImageCommand } from './services/commands/download-pro
         ProcessEditorComponent,
         PaletteComponent,
         ProcessModelerComponent,
+        ProcessModelerActionsComponent,
         ProcessPropertiesComponent,
         MessagesDialogComponent,
         ProcessErrorsDialogComponent,
@@ -195,8 +200,8 @@ import { DownloadProcessSVGImageCommand } from './services/commands/download-pro
         CardViewConditionExpressionItemComponent,
         CreateProcessDialogComponent,
         ProcessCategorySelectorComponent,
+        CardProcessVersionItemComponent
     ],
-    exports: [ProcessEditorRoutingModule],
     providers: [
         DeleteProcessCommand,
         SaveProcessCommand,
@@ -206,6 +211,8 @@ import { DownloadProcessSVGImageCommand } from './services/commands/download-pro
         DownloadProcessSVGImageCommand,
         ProcessEditorService,
         ProcessDiagramLoaderService,
+        ProcessesLoaderGuard,
+        ProcessDeactivateGuard,
         { provide: BpmnFactoryToken, useClass: BpmnFactoryService },
         { provide: ProcessModelerServiceToken, useClass: ProcessModelerServiceImplementation },
         ProcessModelerPaletteService,
@@ -238,9 +245,11 @@ import { DownloadProcessSVGImageCommand } from './services/commands/download-pro
         providePropertyHandler(BpmnProperty.processName, CardViewProcessNameItemComponent),
         providePropertyHandler(BpmnProperty.conditionExpression, CardViewConditionExpressionItemComponent),
         providePropertyHandler(BpmnProperty.category, CardProcessCategoryItemComponent),
+        providePropertyHandler(BpmnProperty.version, CardProcessVersionItemComponent),
         ...getProcessesFilterProvider(),
         ...getProcessCreatorProvider(),
         ...getProcessUploaderProvider(),
+        provideRoutes(processEditorTabRoutes),
         provideLogFilter(getProcessLogInitiator()),
         provideLoadableModelSchema({
             modelType: PROCESS,
@@ -257,4 +266,6 @@ import { DownloadProcessSVGImageCommand } from './services/commands/download-pro
         }
     ]
 })
-export class ProcessEditorModule { }
+export class ProcessEditorModule {
+
+}

@@ -16,12 +16,4 @@
  */
 
 export * from './actions/settings';
-export { LogoutAction, LoggedInAction, ClearLogHistoryAction } from './actions/app.actions';
-
-export {
-    selectToolbarUserMessage,
-    selectToolbarInProgress,
-    selectToolbarLogs,
-    selectToolbarLogsVisibility,
-    selectLogsByInitiator
-} from './selectors/app.selectors';
+export { LogoutAction, LoggedInAction } from './actions/app.actions';

@@ -1,5 +1,14 @@
 {
     "PROJECT_EDITOR": {
+        "CONTENT_MODEL_DIALOG": {
+            "TITLE_CREATE": "Create Content Model",
+            "TITLE_UPDATE": "Update Content Model",
+            "CONTENT_MODEL_NAME": "Content Model name:",
+            "CONTENT_MODEL_DESC": "Content Model description:",
+            "CONTENT_MODEL_CREATED": "Content Model created",
+            "CONTENT_MODEL_DELETED": "Content Model deleted",
+            "CONTENT_MODEL_UPDATED": "Content Model saved"
+        },
         "BACK_TO": "Back to projects",
         "NAME": "Project Editor",
         "UPLOAD_FILE": "Upload file",
@@ -25,6 +34,7 @@
             "CREATE": "Create",
             "UPLOAD": "Upload",
             "IMPORT": "Import",
+            "NO_ITEMS_TO_IMPORT": "There are no models to import",
             "CREATE_PROCESS_TITLE": "Create Process",
             "MENU_ITEMS": {
                 "CREATE_PROCESS": "Process",
@@ -39,7 +49,8 @@
                 "CREATE_PROJECT_MODEL": "Content Model",
                 "CREATE_FORM_WIDGET": "Form Widget",
                 "CREATE_DATA_MODEL": "Data Model",
-                "CREATE_AUTHENTICATION": "Authentication"
+                "CREATE_AUTHENTICATION": "Authentication",
+                "CREATE_CONTENT_MODEL": "Content Model"
             }
         },
         "TREE": {
@@ -53,7 +64,8 @@
             "SCRIPTS": "Scripts",
             "TRIGGERS": "Triggers",
             "DATA_MODELS": "Data Models",
-            "AUTHENTICATIONS": "Authentications"
+            "AUTHENTICATIONS": "Authentications",
+            "FORM_WIDGETS": "Form Widgets"
         },
         "PROCESS_DIALOG": {
             "TITLE_CREATE": "Create Process",
@@ -190,7 +202,7 @@
             "AUTHENTICATION_UPDATED": "Authentication saved"
         },
         "ERROR": {
-            "UPLOAD_DUPLICATE_FILE": "{{modelType}} with the same name already exist",
+            "UPLOAD_DUPLICATE_FILE": "{{modelType}} with the same name already exists.",
             "UPLOAD_FILE": "We hit a problem uploading the file. Try uploading it again.",
             "DELETE_PROJECT": "We hit a problem deleting the project. Try deleting it again.",
             "ADD_TO_FAVORITES": "We hit a problem adding the project to favorites. Try adding it again.",

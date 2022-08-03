@@ -17,7 +17,7 @@
     }
 
     &-main-content {
-        background-color: var(--theme-dialog-bg-color);
+        overflow: hidden;
 
         .mat-list-base {
             display: flex;

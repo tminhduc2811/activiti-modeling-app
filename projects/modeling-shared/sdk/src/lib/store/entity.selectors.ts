@@ -24,7 +24,7 @@ export const PROJECT_ENTITY_KEY = 'projects';
 export const PROCESSES_ENTITY_KEY = 'processes';
 export const CONNECTORS_ENTITY_KEY = 'connectors';
 export const FORMS_ENTITY_KEY = 'forms';
-export const UIS_ENTITY_KEY = 'uis';
+export const MODELS_ENTITY_KEY = 'models';
 export const DECISION_TABLES_ENTITY_KEY = 'decisionTables';
 export const DATA_ENTITY_KEY = 'data';
 export const FILES_ENTITY_KEY = 'files';
@@ -33,11 +33,18 @@ export const TRIGGERS_ENTITY_KEY = 'triggers';
 export const CONTENT_MODELS_ENTITY_KEY = 'projectModels';
 export const FORM_WIDGETS_ENTITY_KEY = 'formWidgets';
 export const AUTHENTICATIONS_ENTITY_KEY = 'authentications';
+export const HXP_DOC_TYPE_ENTITY_KEY = 'hxp-document-type';
+export const HXP_MIXIN_ENTITY_KEY = 'hxp-mixin';
+export const HXP_SCHEMA_ENTITY_KEY = 'hxp-schema';
 
 export interface ModelEntitiesState extends EntityState<Model>  {
     loading: boolean;
     loaded: boolean;
     entityContents: {[key: string]: any};
+    draftEntities: {
+        entities: {[id: string]: Model};
+        entityContents: {[key: string]: any};
+    };
 }
 
 export interface EntitiesState {
@@ -46,16 +53,12 @@ export interface EntitiesState {
 
 export const getEntitiesState = createFeatureSelector<EntityMap<ModelEntitiesState>>('entities');
 
-export const selectModelsEntityContainer = (entityContainer: string) => {
-    return createSelector<object, EntityMap<ModelEntitiesState>, ModelEntitiesState>(
-        getEntitiesState,
-        state => state[entityContainer]
-    );
-};
+export const selectModelsEntityContainer = (entityContainer: string) => createSelector<any, EntityMap<ModelEntitiesState>, ModelEntitiesState>(
+    getEntitiesState,
+    state => state[entityContainer]
+);
 
-export const selectModelsLoaded = (entityContainer: string) => {
-    return createSelector(
-        selectModelsEntityContainer(entityContainer),
-        state => state.loaded
-    );
-};
+export const selectModelsLoaded = (entityContainer: string) => createSelector(
+    selectModelsEntityContainer(entityContainer),
+    state => state.loaded
+);

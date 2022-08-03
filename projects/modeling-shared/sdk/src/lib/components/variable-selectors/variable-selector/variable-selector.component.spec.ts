@@ -18,15 +18,17 @@
 import { CoreModule, TranslationMock, TranslationService } from '@alfresco/adf-core';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
-import { ElementVariable } from '../../../api/types';
+import { ElementVariable, ProcessEditorElementVariable } from '../../../api/types';
 import { expectedVariables } from '../../../mocks/process-editor.mock';
 import { MODELING_JSON_SCHEMA_PROVIDERS } from '../../../services/modeling-json-schema-provider.service';
 import { INPUT_TYPE_ITEM_HANDLER } from '../../../variables/properties-viewer/value-type-inputs/value-type-inputs';
 import { VariableSelectorComponent } from './variable-selector.component';
+
+const cloneDeep = require('lodash/cloneDeep');
 
 describe('VariableSelectorComponent', () => {
 
@@ -34,7 +36,7 @@ describe('VariableSelectorComponent', () => {
     let component: VariableSelectorComponent;
     let vars: ElementVariable[];
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 { provide: TranslationService, useClass: TranslationMock },
@@ -46,10 +48,10 @@ describe('VariableSelectorComponent', () => {
                 CoreModule.forChild(),
                 OverlayModule,
                 TranslateModule.forRoot(),
-                BrowserAnimationsModule
+                NoopAnimationsModule
             ],
             declarations: [VariableSelectorComponent]
-        }).compileComponents();
+        });
         vars = [];
         expectedVariables.filter((variable) => variable.variables && variable.variables.length > 0).forEach((element) => vars = vars.concat(element.variables));
 
@@ -58,7 +60,7 @@ describe('VariableSelectorComponent', () => {
         component.variables = expectedVariables;
         component.ngOnInit();
         fixture.detectChanges();
-    }));
+    });
 
     it('should display variable list', () => {
         const variableIcons = fixture.debugElement.queryAll(By.css('.ama-variables-selector-variables-group-list-item-type'));
@@ -207,5 +209,32 @@ describe('VariableSelectorComponent', () => {
             expect(component.search).toEqual('');
             expect(component.variableSelected.emit).toHaveBeenCalledWith(null);
         });
+    });
+
+    it('should not include in the filtered variables list those that are only for expressions', () => {
+        const variableToBeOmitted: ElementVariable = {
+            id: 'toBeOmitted',
+            name: 'toBeOmitted',
+            type: 'boolean',
+            onlyForExpression: true
+        };
+        const variableToBeIncluded: ElementVariable = {
+            id: 'toBeIncluded',
+            name: 'toBeIncluded',
+            type: 'boolean'
+        };
+        const variables: ProcessEditorElementVariable[] = cloneDeep(expectedVariables);
+        variables[0].variables.push(variableToBeOmitted);
+        variables[0].variables.push(variableToBeIncluded);
+        component.variables = variables;
+        component.ngOnInit();
+
+        let filteredVars = [];
+        component.filteredVars
+            .filter((variable) => variable.variables && variable.variables.length > 0)
+            .forEach((element) => filteredVars = filteredVars.concat(element.variables));
+
+        expect(filteredVars).not.toContainEqual(variableToBeOmitted);
+        expect(filteredVars).toContainEqual(variableToBeIncluded);
     });
 });

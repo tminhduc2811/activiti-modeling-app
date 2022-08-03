@@ -1,0 +1,126 @@
+.ama-editor-footer {
+    z-index: 1;
+    .mat-toolbar {
+        border: 1px solid var(--theme-border-color);
+        border-left: none;
+        border-right: none;
+        border-bottom: none;
+        font-size: 12px;
+
+        &.mat-toolbar-single-row {
+            height: 35px;
+            line-height: 32px;
+            padding: 6px 12px;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ama-log-history-filters {
+            width: 150px;
+            margin-left: 10px;
+        }
+
+        .ama-log-history-controls {
+            margin-left: auto;
+        }
+
+        &.ama-editor-footer-toolbar {
+
+            .ama-editor-footer-toolbar-left {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            .ama-editor-footer-toolbar-right {
+
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: center;
+                flex-wrap: nowrap;
+
+                .ama-footer-user-message {
+                    margin-right: 12px;
+                }
+
+                .ama-message-indicator {
+                    padding: 0 2px;
+                    min-width: 20px;
+                    height: 20px;
+                    border-radius: 10px;
+                    background-color: var(--theme-warn-color);
+                    color: var(--theme-warn-color-default-contrast);
+                    line-height: 20px;
+                    text-align: center;
+                    cursor: pointer;
+
+                    &.ama-inactive {
+                        background-color: var(--theme-unselected-chip-bg-color);
+                        color: var(--theme-disabled-text-color);
+                    }
+                }
+            }
+        }
+
+        &.ama-log-history-toolbar {
+            padding: 0 12px;
+
+            .ama-log-history-toolbar-title {
+                font-size: 14px;
+            }
+
+            .ama-log-history-controls {
+                button {
+                    width: 32px;
+                    height: 32px;
+                    line-height: 32px;
+                    font-size: 14px;
+                }
+            }
+        }
+    }
+
+    .ama-log-history {
+        .ama-log-history-panel {
+            background-color: var(--theme-status-bar-bg-color);
+            height: 200px;
+            overflow: auto;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+
+            .ama-log-entry {
+                margin-bottom: 8px;
+
+                .ama-log-meta {
+                    color: var(--theme-primary-color);
+
+                    mat-icon {
+                        font-size: 16px;
+                        height: 16px;
+                        width: 16px;
+                        position: relative;
+                        top: 4px;
+                        left: -4px;
+                    }
+
+                    .ama-log-initiator {
+                        font-weight: bold;
+                    }
+                }
+
+                &.ama-log-warning .ama-log-meta {
+                    color: var(--theme-accent-color);
+                }
+
+                &.ama-log-error .ama-log-meta {
+                    color: var(--theme-warn-color);
+                }
+            }
+        }
+    }
+
+}

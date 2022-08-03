@@ -1,5 +1,14 @@
 {
   "PROJECT_EDITOR": {
+    "CONTENT_MODEL_DIALOG": {
+        "TITLE_CREATE": "إنشاء نموذج المحتوى",
+        "TITLE_UPDATE": "تحديث نموذج المحتوى",
+        "CONTENT_MODEL_NAME": "اسم نموذج المحتوى:",
+        "CONTENT_MODEL_DESC": "وصف نموذج المحتوى:",
+        "CONTENT_MODEL_CREATED": "تم إنشاء نموذج المحتوى",
+        "CONTENT_MODEL_DELETED": "تم حذف نموذج المحتوى",
+        "CONTENT_MODEL_UPDATED": "تم حفظ نموذج المحتوى"
+    },
     "BACK_TO": "عودة إلى المشروعات",
     "NAME": "محرر المشروعات",
     "UPLOAD_FILE": "تحميل ملف",
@@ -39,7 +48,8 @@
         "CREATE_PROJECT_MODEL": "نموذج المحتوى",
         "CREATE_FORM_WIDGET": "عنصر واجهة النموذج",
         "CREATE_DATA_MODEL": "نموذج البيانات",
-        "CREATE_AUTHENTICATION": "المصادقة"
+        "CREATE_AUTHENTICATION": "المصادقة",
+        "CREATE_CONTENT_MODEL": "نموذج المحتوى"
       }
     },
     "TREE": {
@@ -53,7 +63,8 @@
       "SCRIPTS": "البرامج النصية",
       "TRIGGERS": "المشغلات",
       "DATA_MODELS": "نماذج البيانات",
-      "AUTHENTICATIONS": "المصادقات"
+      "AUTHENTICATIONS": "المصادقات",
+      "FORM_WIDGETS": "عناصر واجهة النموذج"
     },
     "PROCESS_DIALOG": {
       "TITLE_CREATE": "إنشاء عملية",
@@ -190,7 +201,7 @@
       "AUTHENTICATION_UPDATED": "تم حفظ المصادقة"
     },
     "ERROR": {
-      "UPLOAD_DUPLICATE_FILE": "{{modelType}} بنفس الاسم موجودة بالفعل",
+      "UPLOAD_DUPLICATE_FILE": "{{modelType}} بنفس الاسم موجود بالفعل.",
       "UPLOAD_FILE": "نواجه مشكلة في تحميل الملف. حاول تحميله مرة أخرى.",
       "DELETE_PROJECT": "نواجه مشكلة في حذف المشروع. حاول حذفه مرة أخرى.",
       "ADD_TO_FAVORITES": "واجهتنا مشكلة في إضافة المشروع إلى المفضلة. حاول إضافته مرة أخرى.",

@@ -23,7 +23,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { PROCESS_EDITOR_STATE_NAME, selectSelectedProcess, BpmnFactoryToken, ProcessModelerService, ProcessModelerServiceToken } from '@alfresco-dbp/modeling-shared/sdk';
 import { ProcessModelerServiceImplementation } from '../../services/process-modeler.service';
 import { BpmnFactoryMock, getDiagramElementMock } from '../../services/bpmn-js/bpmn-js.mock';
-import { By } from '@angular/platform-browser';
 import { of } from 'rxjs';
 import { mockProcessModel } from '../../store/process.mock';
 import { processEntitiesReducer } from '../../store/process-entities.reducer';
@@ -33,13 +32,14 @@ import { createSelectedElement } from '../../store/process-editor.state';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { TaskAssignmentService } from '../../services/cardview-properties/task-assignment-item/task-assignment.service';
 
 @Component({
     selector: 'ama-process-palette',
     template: ''
-  })
-  class MockPaletteComponent {
-  }
+})
+class MockPaletteComponent {
+}
 
 describe('ProcessModelerComponent', () => {
     let fixture: ComponentFixture<ProcessModelerComponent>;
@@ -59,6 +59,7 @@ describe('ProcessModelerComponent', () => {
                 NoopAnimationsModule
             ],
             providers: [
+                TaskAssignmentService,
                 { provide: TranslationService, useClass: TranslationMock },
                 { provide: ProcessModelerServiceToken, useClass: ProcessModelerServiceImplementation },
                 { provide: BpmnFactoryToken, useClass: BpmnFactoryMock },
@@ -90,56 +91,6 @@ describe('ProcessModelerComponent', () => {
         component.ngOnInit();
 
         expect(processModelerService.init).toHaveBeenCalled();
-    });
-
-    it('should test fit view port button', () => {
-        spyOn(processModelerService, 'fitViewPort');
-
-        const button = fixture.debugElement.query(By.css('[data-automation-class="fit-view-port-button"]'));
-        expect(button).not.toBe(null);
-
-        button.triggerEventHandler('click', null);
-        expect(processModelerService.fitViewPort).toHaveBeenCalled();
-    });
-
-    it('should test undo button', () => {
-        spyOn(processModelerService, 'undo');
-
-        const button = fixture.debugElement.query(By.css('[data-automation-class="undo-button"]'));
-        expect(button).not.toBe(null);
-
-        button.triggerEventHandler('click', null);
-        expect(processModelerService.undo).toHaveBeenCalled();
-    });
-
-    it('should test redo button', () => {
-        spyOn(processModelerService, 'redo');
-
-        const button = fixture.debugElement.query(By.css('[data-automation-class="redo-button"]'));
-        expect(button).not.toBe(null);
-
-        button.triggerEventHandler('click', null);
-        expect(processModelerService.redo).toHaveBeenCalled();
-    });
-
-    it('should test zoom in button', () => {
-        spyOn(processModelerService, 'zoomIn');
-
-        const button = fixture.debugElement.query(By.css('[data-automation-class="zoom-in-button"]'));
-        expect(button).not.toBe(null);
-
-        button.triggerEventHandler('click', null);
-        expect(processModelerService.zoomIn).toHaveBeenCalled();
-    });
-
-    it('should test zoom out button', () => {
-        spyOn(processModelerService, 'zoomOut');
-
-        const button = fixture.debugElement.query(By.css('[data-automation-class="zoom-out-button"]'));
-        expect(button).not.toBe(null);
-
-        button.triggerEventHandler('click', null);
-        expect(processModelerService.zoomOut).toHaveBeenCalled();
     });
 
     it('should load diagram after init', () => {

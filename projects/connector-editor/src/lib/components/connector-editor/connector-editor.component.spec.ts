@@ -16,7 +16,7 @@
  */
 
 import { ConnectorEditorComponent } from './connector-editor.component';
-import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Store } from '@ngrx/store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -58,7 +58,7 @@ describe('ConnectorEditorComponent', () => {
     const updateConnectorPayload = new UpdateConnectorContentAttemptAction({modelId: 'mock-id', modelContent: JSON.parse(content)});
     let connectorEditorState = ModelEditorState.SAVED;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 SharedModule,
@@ -100,13 +100,15 @@ describe('ConnectorEditorComponent', () => {
                 {
                     provide: CONNECTOR_MODEL_ENTITY_SELECTORS,
                     useValue: {
-                        selectModelContentById: jest.fn().mockImplementation(() => of())
+                        selectModelContentById: jest.fn().mockImplementation(() => of()),
+                        selectModelDraftContentById: jest.fn().mockImplementation(() => of()),
+                        selectModelDraftStateExists: jest.fn().mockImplementation(() => of())
                     }
                 }
             ],
             schemas: [NO_ERRORS_SCHEMA]
-        }).compileComponents();
-    }));
+        });
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(ConnectorEditorComponent);

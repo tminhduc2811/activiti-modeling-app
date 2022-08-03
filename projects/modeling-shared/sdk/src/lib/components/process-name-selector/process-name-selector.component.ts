@@ -33,7 +33,7 @@ const cloneDeep = require('lodash/cloneDeep');
 
 export class ProcessNameSelectorComponent implements OnInit {
 
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() change = new EventEmitter();
     @Input() value: string;
     @Input() disabled: boolean;
@@ -41,7 +41,7 @@ export class ProcessNameSelectorComponent implements OnInit {
     @Input() placeholder: string;
     @Input() extendedProperties: {
         plain: boolean;
-        excludedProcesses: string[]
+        excludedProcesses: string[];
     };
 
     processes: Observable<ProcessDropdownStructure>;

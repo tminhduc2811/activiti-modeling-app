@@ -17,7 +17,7 @@
 
 import { Effect, Actions, ofType } from '@ngrx/effects';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { EMPTY, Observable, of } from 'rxjs';
 import { DashboardService } from '../../services/dashboard.service';
 import { tap, switchMap, catchError, map, mergeMap, withLatestFrom } from 'rxjs/operators';
 import { Router } from '@angular/router';
@@ -81,7 +81,7 @@ export class ProjectsEffects {
     showProjectsEffect = this.actions$.pipe(
         ofType<ShowProjectsAction>(SHOW_PROJECTS),
         withLatestFrom(this.store.select(selectProjectsLoaded)),
-        switchMap(([action, loaded]) => loaded ? of() : of(new GetProjectsAttemptAction(<FetchQueries> action.pagination)))
+        switchMap(([action, loaded]) => loaded ? EMPTY : of(new GetProjectsAttemptAction(<FetchQueries> action.pagination)))
     );
 
     @Effect()
@@ -168,7 +168,7 @@ export class ProjectsEffects {
                     direction: sorting.direction
                 }, search)
             ]),
-            catchError(_ => of(new SnackbarErrorAction('PROJECT_EDITOR.ERROR.DELETE_PROJECT')))
+            catchError(() => of(new SnackbarErrorAction('PROJECT_EDITOR.ERROR.DELETE_PROJECT')))
         );
     }
 
@@ -205,14 +205,14 @@ export class ProjectsEffects {
     private getProjectsAttempt(pagination: FetchQueries, sorting: ServerSideSorting, search: SearchQuery) {
         return this.dashboardService.fetchProjects(pagination, sorting, search).pipe(
             switchMap(data => [new GetProjectsSuccessAction(data.entries, data.pagination)]),
-            catchError(e => this.handleError('DASHBOARD.ERROR.LOAD_PROJECTS'))
+            catchError(() => this.handleError('DASHBOARD.ERROR.LOAD_PROJECTS'))
         );
     }
 
     private getFavoriteProjectsAttempt(pagination: FetchQueries, sorting: ServerSideSorting, search: SearchQuery) {
         return this.dashboardService.fetchProjects(pagination, sorting, search, true).pipe(
             switchMap(data => [new GetFavoriteProjectsSuccessAction(data.entries, data.pagination)]),
-            catchError(e => this.handleError('NEW_STUDIO_DASHBOARD.ERROR.LOAD_FAVORITE_PROJECTS'))
+            catchError(() => this.handleError('NEW_STUDIO_DASHBOARD.ERROR.LOAD_FAVORITE_PROJECTS'))
         );
     }
 

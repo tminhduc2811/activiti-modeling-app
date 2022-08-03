@@ -40,7 +40,7 @@ describe('CardProcessCategoryItemComponent', () => {
     let categoryItemComponent: CardProcessCategoryItemComponent;
 
     beforeEach(async () => {
-        await TestBed.configureTestingModule({
+        TestBed.configureTestingModule({
             imports: [
                 TranslateModule.forRoot(),
                 NoopAnimationsModule,
@@ -57,13 +57,13 @@ describe('CardProcessCategoryItemComponent', () => {
             providers: [
                 provideMockStore({
                     selectors: [
-                      { selector: selectProcessCategories, value: ['Category 1', 'Category 2'] },
+                        { selector: selectProcessCategories, value: ['Category 1', 'Category 2'] },
                     ],
-                  }),
+                }),
                 { provide: ProcessModelerServiceToken, useValue: processModelerServiceMock },
                 { provide: TranslationService, useClass: TranslationMock },
             ]
-        }).compileComponents();
+        });
 
         const componentInput = {
             data: {

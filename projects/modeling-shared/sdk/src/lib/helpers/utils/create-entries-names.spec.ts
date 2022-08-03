@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { sanitizeString, createModelName, formatUuid, MODELER_NAME_REGEX, PROCESS_NAME_REGEX } from './create-entries-names';
+import { sanitizeString, createModelName, formatUuid, MODELER_NAME_REGEX, PROCESS_NAME_REGEX, IDENTIFIER_REGEX } from './create-entries-names';
 
 describe('Create entries names', () => {
     it ('test sanitizeString function', () => {
@@ -54,7 +54,7 @@ describe('Create entries names', () => {
     });
 
     it('PROCESS_NAME_REGEX should allow Special characters in process name', () => {
-        const testString = 'name !@#£\$%\^\&*\)\(+=._-';
+        const testString = 'name !@#£$%^&*)(+=._-';
         expect(PROCESS_NAME_REGEX.test(testString)).toBe(true);
     });
 
@@ -83,4 +83,33 @@ describe('Create entries names', () => {
         expect(MODELER_NAME_REGEX.test(testString)).toBe(false);
     });
 
+    it('MODELER_NAME_REGEX should not allow string with more than 26 chars', () => {
+        const testString = 'a'.repeat(27);
+        expect(MODELER_NAME_REGEX.test(testString)).toBe(false);
+    });
+
+    it('MODELER_NAME_REGEX should allow string with 26 chars', () => {
+        const testString = 'a'.repeat(26);
+        expect(MODELER_NAME_REGEX.test(testString)).toBe(true);
+    });
+
+    it('MODELER_NAME_REGEX should not allow string with uppercase', () => {
+        const testString = 'Test';
+        expect(MODELER_NAME_REGEX.test(testString)).toBe(false);
+    });
+
+    it('IDENTIFIER_REGEX should allow string starting with numeral', () => {
+        const testString = '123-test';
+        expect(IDENTIFIER_REGEX.test(testString)).toBe(true);
+    });
+
+    it('IDENTIFIER_REGEX should allow string starting with alphabets', () => {
+        const testString = 'test-123';
+        expect(IDENTIFIER_REGEX.test(testString)).toBe(true);
+    });
+
+    it('IDENTIFIER_REGEX should allow string containing special characters', () => {
+        const testString = 'te$%t&$#@-da^Ta9';
+        expect(IDENTIFIER_REGEX.test(testString)).toBe(true);
+    });
 });

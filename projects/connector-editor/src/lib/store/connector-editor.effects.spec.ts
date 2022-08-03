@@ -40,7 +40,8 @@ import {
     ValidateConnectorAttemptAction,
     UpdateConnectorFailedAction,
     SaveAsConnectorAttemptAction,
-    OpenSaveAsConnectorAction} from './connector-editor.actions';
+    OpenSaveAsConnectorAction,
+    DraftDeleteConnectorAction} from './connector-editor.actions';
 import { hot, cold, getTestScheduler } from 'jasmine-marbles';
 import {
     EntityDialogForm,
@@ -64,7 +65,10 @@ import {
     ModelScope,
     SaveAsDialogPayload,
     ShowConnectorsAction,
-    CONNECTOR_MODEL_ENTITY_SELECTORS
+    CONNECTOR_MODEL_ENTITY_SELECTORS,
+    UpdateTabTitle,
+    TabManagerService,
+    TabManagerEntityService
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { DialogService } from '@alfresco-dbp/adf-candidates/core/dialog';
 import { Update } from '@ngrx/entity';
@@ -170,7 +174,13 @@ describe('ConnectorEditorEffects', () => {
                     useValue: {
                         selectModelMetadataById: jest.fn().mockReturnValue(mockSelector)
                     }
-                }
+                },
+                {
+                    provide: TabManagerEntityService, useValue: {
+                        entities$: of([])
+                    }
+                },
+                TabManagerService
             ]
         });
 
@@ -218,10 +228,11 @@ describe('ConnectorEditorEffects', () => {
             actions$ = hot('a', { a: new UpdateConnectorContentAttemptAction(mockPayload) });
             const expectedLogAction = logFactory.logInfo(getConnectorLogInitiator(), 'PROJECT_EDITOR.CONNECTOR_DIALOG.CONNECTOR_UPDATED');
             expectedLogAction.log.datetime = (<any>expect).any(Date);
-            const expected = cold('(bcdf)', {
+            const expected = cold('(bcdef)', {
                 b: new SetApplicationLoadingStateAction(true),
-                c: new UpdateConnectorSuccessAction({ id: connector.id, changes: mockPayload.modelContent }),
-                d: expectedLogAction,
+                c: new DraftDeleteConnectorAction(connector.id),
+                d: new UpdateConnectorSuccessAction({ id: connector.id, changes: mockPayload.modelContent }),
+                e: expectedLogAction,
                 f: new SnackbarInfoAction('PROJECT_EDITOR.CONNECTOR_DIALOG.CONNECTOR_UPDATED')
             });
 
@@ -327,10 +338,11 @@ describe('ConnectorEditorEffects', () => {
         });
 
         it('updateConnectorSuccessEffect should dispatch SetAppDirtyStateAction', () => {
-            actions$ = hot('a', { a: new UpdateConnectorSuccessAction(<Update<Partial<Connector>>>{}) });
-            const expected = cold('(bc)', {
-                b: new SetApplicationLoadingStateAction(false),
-                c: new SetAppDirtyStateAction(false)
+            actions$ = hot('a', { a: new UpdateConnectorSuccessAction(<Update<Partial<Connector>>>{changes: {name: ''}, id: ''}) });
+            const expected = cold('(bcd)', {
+                b: new UpdateTabTitle('', ''),
+                c: new SetApplicationLoadingStateAction(false),
+                d: new SetAppDirtyStateAction(false)
             });
 
             expect(effects.updateConnectorSuccessEffect).toBeObservable(expected);

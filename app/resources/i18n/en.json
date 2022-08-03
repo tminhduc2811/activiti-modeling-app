@@ -13,7 +13,8 @@
             "SETTINGS": "Settings",
             "ABOUT": "About",
             "LANGUAGE": "Language",
-            "SEARCH": "Search"
+            "SEARCH": "Search",
+            "APPEARANCE": "Appearance"
         },
         "DIALOGS": {
             "CANCEL": "Cancel",
@@ -78,6 +79,7 @@
             "RELEASE": "Release",
             "COLLABORATORS": "Collaborators",
             "SEE_RELEASES": "View Releases",
+            "LOG_HISTORY": "Log History",
             "DOWNLOAD": "Download",
             "SAVE_AS": "Save as",
             "EDITORS_MENU": "Editors Menu",
@@ -98,6 +100,10 @@
             "NAME": "Name",
             "DESCRIPTION": "Description",
             "TITLE": "Application title"
+        },
+        "THEME": {
+          "LIGHT": "Light theme",
+          "DARK": "Dark theme"
         }
     }
 }
