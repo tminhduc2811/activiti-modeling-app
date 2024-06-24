@@ -28,7 +28,6 @@ export const environment: Environment<typeof FEATURES> = {
     devTools: true,
     e2e: false,
     features: {
-        canary: true,
-        studioLayout: false
+        canary: true
     }
 };

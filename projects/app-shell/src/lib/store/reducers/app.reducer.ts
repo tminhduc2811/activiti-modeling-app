@@ -22,7 +22,6 @@ import { appThemes } from '../../common/components/themes';
 import {
     AppActionTypes,
     AsyncInitAction,
-    CLEAR_LOG_HISTORY
 } from '../actions/app.actions';
 import {
     AppState,
@@ -31,7 +30,6 @@ import {
     MODEL_OPENED,
     ModelOpenedAction,
     MODEL_CLOSED,
-    ModelClosedAction,
     TOOLBAR_MESSAGE,
     ToolbarMessageAction,
     LOADED_APPLICATION,
@@ -44,72 +42,78 @@ import {
     SELECT_PROJECT,
     SetMenuAction,
     SET_MENU,
+    CHANGE_THEME,
+    ChangeThemeAction,
+    CLEAR_LOG_HISTORY
 } from '@alfresco-dbp/modeling-shared/sdk';
 
 export function appReducer(state: AppState = INITIAL_APP_STATE, action: Action): AppState {
     let newState: AppState;
 
     switch (action.type) {
-        case AppActionTypes.AsyncInit:
-            newState = asyncInit(state, <AsyncInitAction>action);
-            break;
-        case UPDATE_SETTINGS:
-            newState = updateSettings(state, <UpdateSettingsAction>action);
-            break;
+    case AppActionTypes.AsyncInit:
+        newState = asyncInit(state, <AsyncInitAction>action);
+        break;
+    case UPDATE_SETTINGS:
+        newState = updateSettings(state, <UpdateSettingsAction>action);
+        break;
+    case CHANGE_THEME:
+        newState = updateSettings(state, <ChangeThemeAction>action);
+        break;
 
-        case SET_MENU:
-            newState = setMenuState(state, <SetMenuAction>action);
-            break;
+    case SET_MENU:
+        newState = setMenuState(state, <SetMenuAction>action);
+        break;
 
-        case SELECT_PROJECT:
-            newState = selectProject(state, <SelectProjectAction>action);
-            break;
+    case SELECT_PROJECT:
+        newState = selectProject(state, <SelectProjectAction>action);
+        break;
 
-        case MODEL_OPENED:
-            newState = selectOpenedModel(state, <ModelOpenedAction>action);
-            break;
+    case MODEL_OPENED:
+        newState = selectOpenedModel(state, <ModelOpenedAction>action);
+        break;
 
-        case MODEL_CLOSED:
-            newState = deselectOpenedModel(state, <ModelClosedAction>action);
-            break;
+    case MODEL_CLOSED:
+        newState = deselectOpenedModel(state);
+        break;
 
-        case SET_APP_DIRTY_STATE:
-            newState = setDirtyState(state, <SetAppDirtyStateAction>action);
-            break;
+    case SET_APP_DIRTY_STATE:
+        newState = setDirtyState(state, <SetAppDirtyStateAction>action);
+        break;
 
-         case TOOLBAR_MESSAGE:
-            return {
-                    ...state,
-                    toolbar: {
-                        ...state.toolbar,
-                        userMessage: (<ToolbarMessageAction>action).message
-                    }
-                };
+    case TOOLBAR_MESSAGE:
+        return {
+            ...state,
+            toolbar: {
+                ...state.toolbar,
+                userMessage: (<ToolbarMessageAction>action).message
+            }
+        };
 
-        case LOADED_APPLICATION:
-            return setLoadedAppState(state, <SetApplicationLoadingStateAction> action);
-            break;
+    case LOADED_APPLICATION:
+        return setLoadedAppState(state, <SetApplicationLoadingStateAction> action);
+        break;
 
-        case LOG_ACTION:
-            return storeLog(state, <LogAction> action);
+    case LOG_ACTION:
+        return storeLog(state, <LogAction> action);
 
-        case CLEAR_LOG_HISTORY:
-            return {
-                ...state,
-                logs: []
-            };
+    case CLEAR_LOG_HISTORY:
+        return {
+            ...state,
+            logs: []
+        };
 
-        case SET_LOG_HISTORY_VISIBILITY:
-            return {
-                ...state,
-                toolbar: {
-                    ...state.toolbar,
-                    logHistoryVisible: (<SetLogHistoryVisibilityAction>action).visible
-                    }
-                };
+    case SET_LOG_HISTORY_VISIBILITY:
+        return {
+            ...state,
+            toolbar: {
+                ...state.toolbar,
+                logHistoryVisible: (<SetLogHistoryVisibilityAction>action).visible
+            }
+        };
 
-        default:
-            newState = Object.assign({}, state);
+    default:
+        newState = Object.assign({}, state);
     }
 
     return newState;
@@ -129,7 +133,7 @@ function asyncInit(state: AppState, action: AsyncInitAction): AppState {
     };
 }
 
-function updateSettings(state: AppState, action: UpdateSettingsAction): AppState {
+function updateSettings(state: AppState, action: UpdateSettingsAction | ChangeThemeAction): AppState {
     const newState = Object.assign({}, state);
     newState.selectedTheme = appThemes.find(appTheme => appTheme.className === action.payload.theme);
     return newState;
@@ -154,7 +158,7 @@ function selectOpenedModel(state: AppState, action: ModelOpenedAction): AppState
     return newState;
 }
 
-function deselectOpenedModel(state: AppState, action: ModelClosedAction): AppState {
+function deselectOpenedModel(state: AppState): AppState {
     const newState = Object.assign({}, state);
     newState.openedModel = null;
     return newState;

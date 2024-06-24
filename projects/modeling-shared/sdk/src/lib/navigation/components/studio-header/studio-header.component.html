@@ -22,6 +22,14 @@
             </button>
             <mat-menu #belowMenu="matMenu" yPosition="below">
                 <button mat-menu-item (click)="downloadProject(project)">{{'SDK.PROJECT_HEADER.DOWNLOAD' | translate }}</button>
+                <button mat-menu-item (click)="saveAsProject(project)"
+                    [attr.data-automation-id]="'project-save-as-' + project.id" [attr.aria-label]="'SDK.PROJECT_HEADER.SAVE_AS_ICON' | translate">
+                    {{'SDK.PROJECT_HEADER.SAVE_AS' | translate }}
+                </button>
+                <button mat-menu-item (click)="openLogHistory(project.id)"
+                    [attr.data-automation-id]="'project-log-history' + project.id" [attr.aria-label]="'APP.MENU.LOG_HISTORY' | translate">
+                    {{'APP.MENU.LOG_HISTORY' | translate }}
+                </button>
                 <button mat-menu-item *ngFor="let button of buttons"
                 [attr.data-automation-id]="'project-' + button.automationId"
                 (click)="handleClick(button.actionClass, project.id)">
@@ -32,16 +40,15 @@
         </div>
 
         <div class="ama-studio-project-header-action">
+            <adf-notification-history menuPositionX="before" menuPositionY="above"></adf-notification-history>
+            <modelingsdk-user-info-menu class="ama-studio-project-header-user-info"></modelingsdk-user-info-menu>
             <button mat-flat-button class="ama-studio-project-header-action-validate" (click)="onValidateProject(project.id)">
                 {{'SDK.PROJECT_HEADER.VALIDATE' | translate }}
             </button>
             <button mat-flat-button *ngFor="let button of headerButtons"
-                    class="ama-studio-project-header-action-release" (click)="handleClick(button.actionClass, project.id)">
+                    class="ama-studio-project-header-action-release" (click)="handleClick(button.actionClass, project.id, button.title)">
                 {{'SDK.PROJECT_HEADER.RELEASE' | translate }}
             </button>
-            <!-- <button mat-flat-button class="ama-studio-project-header-action-release" (click)="onReleaseProject(project.id)">
-                {{'SDK.PROJECT_HEADER.RELEASE' | translate }}
-            </button> -->
         </div>
     </ng-container>
 </div>

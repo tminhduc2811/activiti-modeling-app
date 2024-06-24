@@ -22,21 +22,21 @@ import { Connector, ModelScope } from '../api/types';
 import { getEntitiesState } from '../store/entity.selectors';
 import { InjectionToken } from '@angular/core';
 
-export interface EntitiesWithConnectors { connectors: ConnectorEntitiesState; }
+export interface EntitiesWithConnectors { connectors: ConnectorEntitiesState }
 export const selectConnectorsEntityContainer = createSelector(getEntitiesState, (state: any) => <ConnectorEntitiesState>state.connectors);
 export const selectConnectorEntities = createSelector(selectConnectorsEntityContainer, state => state.entities);
 export const selectConnectorEntityContents = createSelector(selectConnectorsEntityContainer, state => state.entityContents);
 
-export const CONNECTOR_SELECTORS_TOKEN = new InjectionToken<MemoizedSelector<object, Connector[]>>('connector-selectors');
+export const CONNECTOR_SELECTORS_TOKEN = new InjectionToken<MemoizedSelector<any, Connector[]>>('connector-selectors');
 export const CONNECTOR_MODEL_ENTITY_SELECTORS = new InjectionToken<string>('connector-selector-token');
 
 export const selectProjectConnectorsArray = createSelector(
     selectConnectorEntities,
     selectSelectedProjectId,
     (connectors, selectedProjectId) => Object.values(connectors).filter((connector: Connector) =>
-    selectedProjectId ?
-        (connector.projectIds && connector.projectIds.indexOf(selectedProjectId) >= 0) :
-        connector.scope === ModelScope.GLOBAL)
+        selectedProjectId ?
+            (connector.projectIds && connector.projectIds.indexOf(selectedProjectId) >= 0) :
+            connector.scope === ModelScope.GLOBAL)
 );
 
 export const connectorByName = name => createSelector(

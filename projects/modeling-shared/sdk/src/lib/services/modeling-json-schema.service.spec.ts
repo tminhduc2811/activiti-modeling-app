@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { TestBed } from '@angular/core/testing';
 import { CodeEditorService } from '../code-editor/services/code-editor-service.service';
 import { ModelingJSONSchemaService } from './modeling-json-schema.service';
@@ -298,5 +299,13 @@ describe('ModelingJSONSchemaService', () => {
         ];
 
         expect(notification).toEqual(expectedNotification);
+    });
+
+    it('should return execution as modeling type when is type is execution', () => {
+        expect(service.getModelingTypeFromJSONSchemaType('execution')).toEqual('execution');
+    });
+
+    it('should return execution as primitive type when is type is execution', () => {
+        expect(service.getPrimitiveTypes({ type: 'execution' })).toEqual(['execution']);
     });
 });

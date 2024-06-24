@@ -34,6 +34,7 @@ import { ValidateProcessCommand } from '../../services/commands/validate-process
 import { DownloadProcessCommand } from '../../services/commands/download-process.command';
 import { SaveAsProcessCommand } from '../../services/commands/save-as-process.command';
 import { DownloadProcessSVGImageCommand } from '../../services/commands/download-process-svg-image.command';
+import { By } from '@angular/platform-browser';
 
 describe('ProcessEditorComponent', () => {
     let fixture: ComponentFixture<ProcessEditorComponent>;
@@ -107,7 +108,10 @@ describe('ProcessEditorComponent', () => {
                     provide: PROCESS_MODEL_ENTITY_SELECTORS,
                     useValue: {
                         selectModelContentById: jest.fn().mockImplementation(() => of()),
-                        selectModelMetadataById: jest.fn().mockImplementation(() => of())
+                        selectModelMetadataById: jest.fn().mockImplementation(() => of()),
+                        selectModelDraftContentById: jest.fn().mockImplementation(() => of()),
+                        selectModelDraftMetadataById: jest.fn().mockImplementation(() => of()),
+                        selectModelDraftStateExists: jest.fn().mockImplementation(() => of())
                     }
                 }
             ],
@@ -166,5 +170,14 @@ describe('ProcessEditorComponent', () => {
         });
         await expect(store.dispatch).toHaveBeenCalledWith(updateProcessPayload);
         await expect(canDeactivateResponse).toBe(undefined);
+    });
+
+    it('should not display process modeler actions when in different editors tab', async() => {
+        component.selectedTabIndex = 1;
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        const modelerActions = fixture.debugElement.query(By.css('.ama-process-modeler-actions'));
+        expect(modelerActions).toBeNull();
     });
 });

@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { AppConfigService } from '@alfresco/adf-core';
+import { AppConfigService, JwtHelperService, UserAccessService } from '@alfresco/adf-core';
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { AuthTokenProcessorService } from '../../../services/auth.service';
-import { OpenSettingsDialogAction } from '../../../store/app.actions';
+import { OpenAboutDialogAction } from '../../../store/app.actions';
 import { AmaState } from '../../../store/app.state';
 
 const ROLE_ADMIN = 'ACTIVITI_ADMIN';
@@ -38,27 +37,30 @@ export class UserInfoMenuComponent implements OnInit {
 
     userDetails: UserDetails;
     userName = '';
+    userMail = '';
 
     constructor(
-        private store: Store<AmaState>,
-        private authService: AuthTokenProcessorService,
-        private config: AppConfigService
+        private jwtHelperService: JwtHelperService,
+        private userAccessService: UserAccessService,
+        private config: AppConfigService,
+        private store: Store<AmaState>
     ) {}
 
     ngOnInit() {
         this.userDetails = {
-            firstName: this.authService.getValueFromToken('given_name') ?? '',
-            lastName: this.authService.getValueFromToken('family_name') ?? ''
+            firstName: this.jwtHelperService.getValueFromLocalIdToken('given_name') ?? '',
+            lastName: this.jwtHelperService.getValueFromLocalIdToken('family_name') ?? ''
         };
         this.userName = this.getUserName();
+        this.userMail = this.jwtHelperService.getValueFromLocalIdToken('email');
     }
 
     getUserName(): string {
-        return this.authService.getValueFromToken('name');
+        return this.jwtHelperService.getValueFromLocalIdToken('name');
     }
 
     isUserAdmin(): boolean {
-        return this.authService.hasRole(ROLE_ADMIN);
+        return this.userAccessService.hasGlobalAccess([ROLE_ADMIN]);
     }
 
     openAdminApp(): void {
@@ -66,11 +68,12 @@ export class UserInfoMenuComponent implements OnInit {
         window.open( `${hostValue}/admin`);
     }
 
-    onOpenSettings() {
-        this.store.dispatch(new OpenSettingsDialogAction());
+    navigateToDocs() {
+        window.open('https://docs.alfresco.com/process-automation/latest/');
     }
 
-    navigateToDocs() {
-        window.open('https://docs.alfresco.com/');
+    navigateToAbout() {
+        this.store.dispatch(new OpenAboutDialogAction());
     }
+
 }

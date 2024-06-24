@@ -4,9 +4,14 @@
             "VALIDATE" : "Validate",
             "RELEASE" : "Release",
             "SAVE_AS": "Save as",
+            "SAVE_AS_ICON": "Save as icon",
             "DOWNLOAD": "Download project",
             "VIEW_RELEASES": "View releases",
-            "VERSION": "Version"
+            "VERSION": "Version",
+            "UNSAVED_DIALOG_TITLE": "Unsaved Models",
+            "UNSAVED_VALIDATE_MESSAGE": "There are unsaved changes in some of the opened models, please save them before validating",
+            "UNSAVED_RELEASE_MESSAGE": "There are unsaved changes in some of the opened models, please save them before releasing",
+            "UNSAVED_BACK_TO_DASHBOARD_MESSAGE": "There are unsaved changes in some of the opened models, please save them before going back to dashboard"
         },
         "MODEL_EDITOR": {
             "DIALOG": {
@@ -25,10 +30,19 @@
         "VALUE": "Value",
         "EXPRESSION": "Expression",
         "TYPE": "Type",
+        "DISPLAY_NAME_VISIBILITY": {
+            "YES": "Yes",
+            "NO": "No",
+            "DISPLAY_NAME": "Display Name",
+            "DISPLAY_NAME_AVAILABILITY": "Available in the web application",
+            "ENTER_DISPLAY_NAME": "Enter Display name",
+            "DISPLAY_NAME_TOOLTIP": "Display name is used in the web application, for instance as a column name in the Tasks List, in the Processes List and in the API."
+        },
         "VARIABLES_EDITOR": {
             "ERRORS": {
                 "EMPTY_NAME": "A name is required",
                 "EMPTY_TYPE": "A type is required",
+                "EMPTY_DISPLAY_NAME": "A display name is required",
                 "INVALID_NAME": "Invalid variable name",
                 "VARIABLE_NAME_TOOLTIP": "The name can must start with a letter and can only contain alphanumeric characters and underscores",
                 "NAME_ALREADY_EXISTS": "Variable names must be unique",
@@ -100,7 +114,8 @@
             "VALUE_MAPPING": "Value",
             "EXPRESSION_MAPPING": "Expression",
             "NONE": "None",
-            "TYPE": "Type"
+            "TYPE": "Type",
+            "WRONG_OUTPUT_MAPPING": "The output mapping is incorrect. Not all the added mappings map an expression to a variable"
         },
         "SAVE_AS_DIALOG": {
             "TITLE": "Save as",

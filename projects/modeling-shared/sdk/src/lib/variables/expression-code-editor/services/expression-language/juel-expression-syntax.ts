@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { AlfrescoApiService, AppConfigService, TranslationService } from '@alfresco/adf-core';
 import { Injectable } from '@angular/core';
 import { from, Observable, } from 'rxjs';
@@ -121,7 +123,6 @@ export class JuelExpressionSyntax implements ExpressionSyntaxProvider {
         if (methodDescription?.isArrayAccessor && methodDescription?.type === 'json') {
             modelSchema = JuelExpressionSyntax.extractItemsModelSchema(modelSchema);
         } else if (methodDescription?.isSameTypeAsObject && methodDescription?.type === 'json') {
-            modelSchema = modelSchema;
         } else {
             modelSchema = modelingTypesService.getModelSchemaFromEntityProperty(methodDescription);
         }
@@ -211,7 +212,7 @@ export class JuelExpressionSyntax implements ExpressionSyntaxProvider {
         const words = lineBeforeCursor.replace('\t', '').split(' ');
         const activeTyping = words[words.length - 1];
 
-        return (activeTyping.match(/\,(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)/g) || []).length;
+        return (activeTyping.match(/,(?=([^"\\]*(\\.|"([^"\\]*\\.)*[^"\\]*"))*[^"]*$)/g) || []).length;
     }
 
     static getHoverCard(
@@ -223,8 +224,7 @@ export class JuelExpressionSyntax implements ExpressionSyntaxProvider {
         let hoverCard;
         if (modelSchema) {
 
-            let methodHover;
-            methodHover = modelingTypesService.getMethodsByModelSchema(modelSchema).
+            const methodHover = modelingTypesService.getMethodsByModelSchema(modelSchema).
                 filter(method => !!method).find(method => method.signature === word);
 
             const propertyHover = modelingTypesService.getPropertiesByModelSchema(modelSchema).
@@ -362,7 +362,7 @@ export class JuelExpressionSyntax implements ExpressionSyntaxProvider {
         monaco.languages.registerSignatureHelpProvider(language, {
             signatureHelpTriggerCharacters: ['(', ','],
             signatureHelpRetriggerCharacters: [],
-            provideSignatureHelp: (model, position, token) => {
+            provideSignatureHelp: (model, position) => {
                 const word = model.getWordUntilPosition(position);
                 const range = {
                     startLineNumber: position.lineNumber,
@@ -564,19 +564,19 @@ export class JuelExpressionSyntax implements ExpressionSyntaxProvider {
         }
     }
 
-    resolveExpression(expression: string, variables: { [key: string]: any; }): Observable<any> {
+    resolveExpression(expression: string, variables: { [key: string]: any }): Observable<any> {
         const url = `${this.getHostName()}/modeling-service/v1/juel`;
         const api = this.alfrescoApiService.getInstance().oauth2Auth;
 
         const apiCall = api.callCustomApi(url, 'POST', null, null, null, null, { expression, variables }, ['application/json'], ['application/json']);
 
         return from(apiCall).pipe(
-            map((response: { result: any; }) => response.result)
+            map((response: { result: any }) => response.result)
         );
     }
 
     private getHostName(): string {
-        return this.appConfigService.get('bpmHost', '').match(/^(?:https?:)?(?:\/\/)?([^\/\?]+)/g)[0];
+        return this.appConfigService.get('bpmHost', '').match(/^(?:https?:)?(?:\/\/)?([^/?]+)/g)[0];
     }
 
 }

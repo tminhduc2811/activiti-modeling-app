@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TranslateModule } from '@ngx-translate/core';
 import { TranslationService, TranslationMock, CoreModule } from '@alfresco/adf-core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -31,7 +32,7 @@ describe('PropertiesViewerStringInputComponent', () => {
     let component: PropertiesViewerStringInputComponent;
     let fixture: ComponentFixture<PropertiesViewerStringInputComponent>;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             imports: [
                 NoopAnimationsModule,
@@ -48,8 +49,8 @@ describe('PropertiesViewerStringInputComponent', () => {
                 { provide: TranslationService, useClass: TranslationMock },
                 { provide: INPUT_TYPE_ITEM_HANDLER, useValue: [] }
             ]
-        }).compileComponents();
-    }));
+        });
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(PropertiesViewerStringInputComponent);

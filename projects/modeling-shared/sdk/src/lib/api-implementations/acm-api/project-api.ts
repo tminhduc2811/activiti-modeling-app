@@ -23,7 +23,7 @@ import { map } from 'rxjs/operators';
 import { RequestApiHelper } from './request-api.helper';
 import { ValidationErrors } from '../../interfaces/validation-errors.interface';
 import { PaginatedEntries } from '@alfresco/js-api';
-import { IdentityUserModel } from '@alfresco/adf-core';
+import { IdentityUserModel } from '@alfresco/adf-process-services-cloud';
 
 export interface BackendProject {
     id: string;
@@ -143,12 +143,10 @@ export class ACMProjectApi implements ProjectApi {
         return this.requestApiHelper
             .get('/modeling-service/v1/projects', { queryParams })
             .pipe(
-                map((nodePaging: any) => {
-                    return {
-                        pagination: nodePaging.list.pagination,
-                        entries: nodePaging.list.entries.map(entry => this.createProject(entry.entry))
-                    };
-                })
+                map((nodePaging: any) => ({
+                    pagination: nodePaging.list.pagination,
+                    entries: nodePaging.list.entries.map(entry => this.createProject(entry.entry))
+                }))
             );
     }
 
@@ -183,36 +181,32 @@ export class ACMProjectApi implements ProjectApi {
         return this.requestApiHelper
             .get(`/modeling-service/v1/projects/${projectId}/releases`, { queryParams: queryParams })
             .pipe(
-                map((nodePaging: any) => {
-                    return {
-                        pagination: nodePaging.list.pagination,
-                        entries: nodePaging.list.entries
-                    };
-                })
+                map((nodePaging: any) => ({
+                    pagination: nodePaging.list.pagination,
+                    entries: nodePaging.list.entries
+                }))
             );
     }
 
     public getCollaborators(projectId: string): Observable<PaginatedEntries<CollaboratorEntry>> {
         return this.requestApiHelper
-        .get(`/modeling-service/v1/projects/${projectId}/collaborators`)
-        .pipe(
-            map((nodePaging: any) => {
-                return {
+            .get(`/modeling-service/v1/projects/${projectId}/collaborators`)
+            .pipe(
+                map((nodePaging: any) => ({
                     pagination: nodePaging.list.pagination,
                     entries: nodePaging.list.entries
-                };
-            })
-        );
+                }))
+            );
     }
 
     public addCollaborator(projectId: string, collaborator: IdentityUserModel): Observable<CollaboratorEntry> {
         return this.requestApiHelper
-        .put(`/modeling-service/v1/projects/${projectId}/collaborators/${collaborator.username}`);
+            .put(`/modeling-service/v1/projects/${projectId}/collaborators/${collaborator.username}`);
     }
 
     public removeCollaborator(projectId: string, collaborator: IdentityUserModel): Observable<void> {
         return this.requestApiHelper
-        .delete(`/modeling-service/v1/projects/${projectId}/collaborators/${collaborator.username}`);
+            .delete(`/modeling-service/v1/projects/${projectId}/collaborators/${collaborator.username}`);
     }
 
     public downloadRelease(releaseId: string): Observable<Blob> {

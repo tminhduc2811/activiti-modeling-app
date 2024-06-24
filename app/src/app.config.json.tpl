@@ -10,7 +10,7 @@
         "host": "${APP_CONFIG_OAUTH2_HOST}",
         "authPath": "/protocol/openid-connect/token/",
         "clientId": "${APP_CONFIG_OAUTH2_CLIENTID}",
-        "scope": "openid",
+        "scope": "openid profile email",
         "secret": "",
         "implicitFlow": ${APP_CONFIG_OAUTH2_IMPLICIT_FLOW},
         "silentLogin": ${APP_CONFIG_OAUTH2_SILENT_LOGIN},
@@ -25,7 +25,6 @@
         "name": "Activiti Modeling Application"
     },
     "languagePicker": true,
-    "roles": ["ACTIVITI_MODELER"],
     "locale": "en",
     "languages": [
         {
@@ -113,10 +112,10 @@
     "studioLayoutNavigationData": {
         "process": [
             {
-                "header_label": "NEW_STUDIO_DASHBOARD.NAVIGATION.FAVORITE_PROJECTS.HEADER_LABEL",
                 "label": "NEW_STUDIO_DASHBOARD.NAVIGATION.FAVORITE_PROJECTS.LABEL",
                 "title": "DASHBOARD.NAVIGATION.FAVORITE_PROJECTS.TOOLTIP",
                 "disabled": false,
+                "showSearchBar": true,
                 "route": {
                     "url": "/dashboard/favorite-projects"
                 },
@@ -136,10 +135,10 @@
                 ]
             },
             {
-                "header_label": "NEW_STUDIO_DASHBOARD.NAVIGATION.ALL_PROJECTS.HEADER_LABEL",
                 "label": "NEW_STUDIO_DASHBOARD.NAVIGATION.ALL_PROJECTS.LABEL",
                 "title": "DASHBOARD.NAVIGATION.ALL_PROJECTS.TOOLTIP",
                 "disabled": false,
+                "showSearchBar": true,
                 "route": {
                     "url": "/dashboard/projects"
                 },

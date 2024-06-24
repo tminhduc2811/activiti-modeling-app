@@ -19,6 +19,7 @@ import { Type, InjectionToken } from '@angular/core';
 
 export enum BpmnProperty {
     id = 'id',
+    version = 'version',
     name = 'name',
     modelName = 'modelName',
     documentation = 'documentation',
@@ -54,7 +55,7 @@ export enum BpmnProperty {
     emailServiceTask = 'emailServiceTask',
     docgenServiceTask = 'docgenServiceTask',
     contentServiceTask = 'contentServiceTask',
-    inheritBusinessKey = 'activiti:inheritBusinessKey'
+    inheritBusinessKey = 'inheritBusinessKey'
 }
 
 export enum BpmnCompositeProperty {
@@ -69,10 +70,10 @@ export const PROCESS_EDITOR_CUSTOM_PROPERTY_HANDLERS = new InjectionToken<Proces
 
 export interface ProcessEditorCustomProperty {
     type: string;
-    implementationClass: Type<{}>;
+    implementationClass: Type<any>;
 }
 
-export function providePropertyHandler(type: BpmnProperty | BpmnCompositeProperty, implementationClass: Type<{}>) {
+export function providePropertyHandler(type: BpmnProperty | BpmnCompositeProperty, implementationClass: Type<any>) {
     return {
         provide: PROCESS_EDITOR_CUSTOM_PROPERTY_HANDLERS,
         useValue: { type, implementationClass: implementationClass },

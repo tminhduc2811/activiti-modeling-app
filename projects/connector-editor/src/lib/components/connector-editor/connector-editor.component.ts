@@ -19,7 +19,7 @@ import { Component, ChangeDetectorRef, ViewEncapsulation, OnDestroy, OnInit, Inp
 import { ComponentRegisterService } from '@alfresco/adf-extensions';
 import { Store } from '@ngrx/store';
 import { selectConnectorLoadingState, selectConnectorEditorSaving } from '../../store/connector-editor.selectors';
-import { map, filter, take, tap, switchMap, catchError, shareReplay } from 'rxjs/operators';
+import { map, filter, take, tap, switchMap, catchError, shareReplay, takeUntil } from 'rxjs/operators';
 import { Observable, of, concat, Subject } from 'rxjs';
 import {
     AmaState,
@@ -38,11 +38,12 @@ import {
     CONNECTOR_MODEL_ENTITY_SELECTORS,
     ModelEntitySelectors,
     MODEL_COMMAND_SERVICE_TOKEN,
-    BasicModelCommands
+    BasicModelCommands,
+    UpdateTabDirtyState
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ConnectorCommandsService } from '../../services/commands/connector-commands.service';
-import { ChangeConnectorContent, UpdateConnectorContentAttemptAction} from '../../store/connector-editor.actions';
+import { ChangeConnectorContent, DraftDeleteConnectorAction, DraftUpdateConnectorContentAction, UpdateConnectorContentAttemptAction} from '../../store/connector-editor.actions';
 const memoize = require('lodash/memoize');
 
 @Component({
@@ -80,6 +81,7 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
         'ADV_CONNECTOR_EDITOR.TABS.JSON_EDITOR'
     ];
     selectedTabIndex = 0;
+    onDestroy$: Subject<boolean> = new Subject<boolean>();
 
     constructor(
         private store: Store<AmaState>,
@@ -95,7 +97,7 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
     ngOnInit() {
         this.loadingState$ = this.store.select(selectConnectorLoadingState);
         this.modelId$ = of(this.modelId);
-        const contentFromStore$ = this.store.select(this.entitySelector.selectModelContentById(this.modelId)).pipe(
+        const contentFromStore$ = this.store.select(this.entitySelector.selectModelDraftContentById(this.modelId)).pipe(
             filter(content => !!content),
             take(1),
             map(content => JSON.stringify(content, undefined, 4).trim())
@@ -103,9 +105,7 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
         this.editorContent$ = concat(contentFromStore$, this.editorContentSubject$).pipe(shareReplay(1));
 
         this.boundOnChangeAttempt = this.onChangeAttempt.bind(this);
-        this.getMemoizedDynamicComponentData = memoize((connectorContent, onChangeAttempt) => {
-            return { connectorContent, onChangeAttempt };
-        });
+        this.getMemoizedDynamicComponentData = memoize((connectorContent, onChangeAttempt) => ({ connectorContent, onChangeAttempt }));
 
         this.modelCommands.tabIndexChanged$.subscribe(
             (index: number) => {
@@ -116,6 +116,16 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
         this.fileUri = getFileUri(CONNECTOR, this.languageType, this.modelId);
         this.modelCommands.init(CONNECTOR, ContentType.Connector, this.modelId$, this.editorContent$);
         this.setVisibilityConditions();
+        this.store.select(this.entitySelector.selectModelDraftStateExists(this.modelId)).pipe(takeUntil(this.onDestroy$)).subscribe(isDirty => {
+            this.store.dispatch(new UpdateTabDirtyState(isDirty, this.modelId));
+            if (isDirty) {
+                this.modelCommands.updateIcon(BasicModelCommands.save, 'cloud_upload');
+                this.modelCommands.setDisable(BasicModelCommands.save, false);
+            } else {
+                this.modelCommands.updateIcon(BasicModelCommands.save, 'cloud_done');
+                this.modelCommands.setDisable(BasicModelCommands.save, true);
+            }
+        });
     }
 
     onTabChange(event: MatTabChangeEvent): void {
@@ -134,11 +144,12 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
     }
 
     onChangeAttempt(connectorContentString: string): void {
-       this.disableSave = !this.validate(connectorContentString).valid;
+        this.disableSave = !this.validate(connectorContentString).valid;
 
         if (!this.disableSave) {
             this.editorContentSubject$.next(connectorContentString);
             this.store.dispatch(new ChangeConnectorContent());
+            this.store.dispatch(new DraftUpdateConnectorContentAction({id: this.modelId, changes: JSON.parse(connectorContentString)}));
         }
 
         this.changeDetectorRef.detectChanges();
@@ -160,14 +171,18 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
 
     canDeactivate(): Observable<boolean> {
         return this.editorContent$.pipe(
-                take(1),
-                tap((content) => this.store.dispatch(this.saveAction(content))),
-                switchMap(() => this.store.select(selectConnectorEditorSaving)),
-                filter(updateState => (updateState === ModelEditorState.SAVED) || (updateState === ModelEditorState.FAILED)),
-                take(1),
-                map(state => state === ModelEditorState.SAVED),
-                catchError(() => of(false))
-            );
+            take(1),
+            tap((content) => this.store.dispatch(this.saveAction(content))),
+            switchMap(() => this.store.select(selectConnectorEditorSaving)),
+            filter(updateState => (updateState === ModelEditorState.SAVED) || (updateState === ModelEditorState.FAILED)),
+            take(1),
+            map(state => state === ModelEditorState.SAVED),
+            catchError(() => of(false))
+        );
+    }
+
+    deleteDraftState() {
+        this.store.dispatch(new DraftDeleteConnectorAction(this.modelId));
     }
 
     private setVisibilityConditions() {
@@ -177,5 +192,7 @@ export class ConnectorEditorComponent implements OnInit, CanComponentDeactivate,
 
     ngOnDestroy() {
         this.modelCommands.destroy();
+        this.onDestroy$.next(true);
+        this.onDestroy$.complete();
     }
 }

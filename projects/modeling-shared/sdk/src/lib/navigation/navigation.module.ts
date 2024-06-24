@@ -21,13 +21,13 @@ import { NgModule } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
-import { RootNavigationComponent } from './components/root/root-navigation.component';
 import { MainNavigationComponent } from './components/main-navigation/main-navigation.component';
 import { MainNavigationHeaderComponent } from './components/main-header/main-navigation-header.component';
 import { UserInfoMenuComponent } from './components/user-info-menu/user-info-menu.component';
 import { StudioHeaderComponent } from './components/studio-header/studio-header.component';
 import { SearchHeaderComponent } from './components/search-header/search-header.component';
 import { PreferProjectButtonModule } from '../components/prefer-project-button/prefer-project-button.module';
+import { ThemeMenuComponent } from './components/theme-menu/theme-menu.component';
 
 @NgModule({
     imports: [
@@ -38,7 +38,21 @@ import { PreferProjectButtonModule } from '../components/prefer-project-button/p
         RouterModule.forChild([]),
         CoreModule.forChild()
     ],
-    declarations: [ RootNavigationComponent, MainNavigationComponent, MainNavigationHeaderComponent, UserInfoMenuComponent, StudioHeaderComponent, SearchHeaderComponent] ,
-    exports: [ RootNavigationComponent, MainNavigationComponent, MainNavigationHeaderComponent, UserInfoMenuComponent, StudioHeaderComponent, SearchHeaderComponent ]
+    declarations: [
+        MainNavigationComponent,
+        MainNavigationHeaderComponent,
+        UserInfoMenuComponent,
+        StudioHeaderComponent,
+        SearchHeaderComponent,
+        ThemeMenuComponent
+    ] ,
+    exports: [
+        MainNavigationComponent,
+        MainNavigationHeaderComponent,
+        UserInfoMenuComponent,
+        StudioHeaderComponent,
+        SearchHeaderComponent,
+        ThemeMenuComponent
+    ]
 })
 export class NavigationModule { }

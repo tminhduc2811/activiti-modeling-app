@@ -16,8 +16,8 @@
  */
 
 export * from './navigation.module';
-export * from './components/root/root-navigation.component';
 export * from './components/main-navigation/main-navigation.component';
 export * from './components/main-header/main-navigation-header.component';
 export * from './components/user-info-menu/user-info-menu.component';
 export * from './components/studio-header/studio-header.component';
+export * from './components/theme-menu/theme-menu.component';

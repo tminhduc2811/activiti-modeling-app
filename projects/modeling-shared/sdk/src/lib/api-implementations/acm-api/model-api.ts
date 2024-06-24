@@ -20,7 +20,7 @@ import { RequestApiHelper, RequestApiHelperOptions } from './request-api.helper'
 import { map, concatMap, flatMap } from 'rxjs/operators';
 import { ModelApiInterface } from '../../api/generalmodel-api.interface';
 import { Model, MinimalModelSummary, ModelScope, FetchQueries, ServerSideSorting } from '../../api/types';
-import { createBlobFormDataFromStringContent, createBlobFormData } from '../../helpers/utils/createJsonBlob';
+import { createBlobFormDataFromStringContent, createBlobFormData } from '../../helpers/utils/create-json-blob';
 import { PaginatedEntries } from '@alfresco/js-api';
 
 export interface ModelResponse<T extends Model> {
@@ -29,7 +29,7 @@ export interface ModelResponse<T extends Model> {
 
 export interface ModelsResponse<T extends Model> {
     list: {
-        entries: ModelResponse<T>[]
+        entries: ModelResponse<T>[];
     };
 }
 
@@ -53,44 +53,42 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
     public getList(containerId: string): Observable<T[]> {
         return this.requestApiHelper
             .get<ModelsResponse<T>>(
-                `/modeling-service/v1/projects/${containerId}/models`,
-                { queryParams: { type: this.modelVariation.contentType, maxItems: 1000 } })
+            `/modeling-service/v1/projects/${containerId}/models`,
+            { queryParams: { type: this.modelVariation.contentType, maxItems: 1000 } })
             .pipe(
-                map((nodePaging) => {
-                    return nodePaging.list.entries
-                        .map(entry => entry.entry)
-                        .map((entry) => this.createEntity(entry, containerId));
-                })
+                map((nodePaging) => nodePaging.list.entries
+                    .map(entry => entry.entry)
+                    .map((entry) => this.createEntity(entry)))
             );
     }
 
     public create(model: Partial<MinimalModelSummary>, containerId: string): Observable<T> {
         return this.requestApiHelper
             .post<ModelResponse<T>>(
-                `/modeling-service/v1/projects/${containerId}/models`,
-                { bodyParam: { ...this.modelVariation.createInitialMetadata(model), type: this.modelVariation.contentType } })
+            `/modeling-service/v1/projects/${containerId}/models`,
+            { bodyParam: { ...this.modelVariation.createInitialMetadata(model), type: this.modelVariation.contentType } })
             .pipe(
                 map(response => response.entry),
                 concatMap(createdEntity => {
                     // Patch: BE does not return the description...
                     const createdEntityWithDescription: T = <T>{
                         description: model.description,
-                        ...<object>createdEntity
+                        ...createdEntity
                     };
 
                     return this.updateContent(createdEntityWithDescription, this.modelVariation.createInitialContent(createdEntityWithDescription));
                 }),
-                map(createdEntity => this.createEntity(createdEntity, containerId))
+                map(createdEntity => this.createEntity(createdEntity))
             );
     }
 
     public retrieve(modelId: string, containerId: string, queryParams?: any): Observable<T> {
         return this.requestApiHelper
             .get<ModelResponse<T>>(
-                `/modeling-service/v1/models/${modelId}`,
-                { queryParams: queryParams })
+            `/modeling-service/v1/models/${modelId}`,
+            { queryParams: queryParams })
             .pipe(
-                map(response => this.createEntity(response.entry, containerId))
+                map(response => this.createEntity(response.entry))
             );
     }
 
@@ -102,7 +100,7 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
             .put<ModelResponse<T>>(`/modeling-service/v1/models/${modelId}`, { bodyParam: summary })
             .pipe(
                 concatMap(response => ignoreContent ? of(response.entry) : this.updateContent(response.entry, content)),
-                map(updatedEntity => this.createEntity(updatedEntity, containerId))
+                map(updatedEntity => this.createEntity(updatedEntity))
             );
     }
 
@@ -171,7 +169,7 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
         return this.requestApiHelper
             .post<ModelResponse<T>>(`/modeling-service/v1/projects/${containerId}/models/import`, requestOptions)
             .pipe(
-                map(response => this.createEntity(response.entry, containerId))
+                map(response => this.createEntity(response.entry))
             );
     }
 
@@ -183,12 +181,12 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
         return this.requestApiHelper.get<S>(`/modeling-service/v1/models/${modelId}/content`, requestOptions);
     }
 
-    private createEntity(entity: Partial<T>, containerId: string): T {
+    private createEntity(entity: Partial<T>): T {
         return {
             description: '',
             version: '0.0.1',
             // Patch: BE does not return empty or not yet defined properties at all, like extensions
-            ...(this.modelVariation.patchModel(entity) as object)
+            ...(this.modelVariation.patchModel(entity))
         } as T;
     }
 
@@ -201,30 +199,30 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
 
         return this.requestApiHelper
             .put<void>(`/modeling-service/v1/models/${modelId}/content`, requestOptions).pipe(
-                flatMap(() => {
-                    const content$ = this.export(modelId, responseType),
-                        model$ = this.retrieve(modelId, modelId);
-                    return forkJoin(model$, content$);
-                })
-            );
+            flatMap(() => {
+                const content$ = this.export(modelId, responseType),
+                    model$ = this.retrieve(modelId, modelId);
+                return forkJoin(model$, content$);
+            })
+        );
     }
 
     addProjectModelRelationship(containerId: string, modelId: string, scope?: ModelScope, force?: boolean): Observable<T> {
         return this.requestApiHelper
             .put<ModelResponse<T>>(
-                `/modeling-service/v1/projects/${containerId}/models/${modelId}`,
-                { queryParams: { scope, force } })
+            `/modeling-service/v1/projects/${containerId}/models/${modelId}`,
+            { queryParams: { scope, force } })
             .pipe(
-                map(response => this.createEntity(response.entry, containerId))
+                map(response => this.createEntity(response.entry))
             );
     }
 
     deleteProjectModelRelationship(containerId: string, modelId: string): Observable<T> {
         return this.requestApiHelper
             .delete<ModelResponse<T>>(
-                `/modeling-service/v1/projects/${containerId}/models/${modelId}`)
+            `/modeling-service/v1/projects/${containerId}/models/${modelId}`)
             .pipe(
-                map(response => this.createEntity(response.entry, containerId))
+                map(response => this.createEntity(response.entry))
             );
     }
 
@@ -242,34 +240,32 @@ export class ModelApi<T extends Model, S> implements ModelApiInterface<T, S> {
 
         return this.requestApiHelper
             .get<ModelsResponse<T>>(
-                `/modeling-service/v1/models`, { queryParams })
+            `/modeling-service/v1/models`, { queryParams })
             .pipe(
-                map((nodePaging: any) => {
-                    return {
-                        pagination: nodePaging.list.pagination,
-                        entries: nodePaging.list.entries.map(entry => this.createEntity(entry.entry, null))
-                    };
-                })
+                map((nodePaging: any) => ({
+                    pagination: nodePaging.list.pagination,
+                    entries: nodePaging.list.entries.map(entry => this.createEntity(entry.entry))
+                }))
             );
     }
 
     public createGlobalModel(model: Partial<MinimalModelSummary>): Observable<T> {
         return this.requestApiHelper
             .post<ModelResponse<T>>(
-                `/modeling-service/v1/models`,
-                { bodyParam: { ...this.modelVariation.createInitialMetadata(model), type: this.modelVariation.contentType, scope: ModelScope.GLOBAL } })
+            `/modeling-service/v1/models`,
+            { bodyParam: { ...this.modelVariation.createInitialMetadata(model), type: this.modelVariation.contentType, scope: ModelScope.GLOBAL } })
             .pipe(
                 map(response => response.entry),
                 concatMap(createdEntity => {
                     // Patch: BE does not return the description...
                     const createdEntityWithDescription: T = <T>{
                         description: model.description,
-                        ...<object>createdEntity
+                        ...createdEntity
                     };
 
                     return this.updateContent(createdEntityWithDescription, this.modelVariation.createInitialContent(createdEntityWithDescription));
                 }),
-                map(createdEntity => this.createEntity(createdEntity, null))
+                map(createdEntity => this.createEntity(createdEntity))
             );
     }
 }

@@ -15,18 +15,30 @@
  * limitations under the License.
  */
 
-import { Component, Input, forwardRef, Output, EventEmitter, ViewEncapsulation } from '@angular/core';
+/* eslint-disable max-lines */
+
+import { Component, Input, forwardRef, Output, EventEmitter, ViewEncapsulation, ViewChild, OnChanges, SimpleChanges } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 import { MatOptionSelectionChange } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ChildrenDeletedEvent, JSONSchemaDefinition, JSONSchemaEditorDialogData, TYPES } from '../../models/model';
+import {
+    ChildrenDeletedEvent,
+    JsonNodeCustomization,
+    JSONSchemaDefinition,
+    JSONSchemaEditorDialogData,
+    JSONSchemaTypeDropdownDefinition
+} from '../../models/model';
 import { JsonSchemaEditorDialogComponent } from '../json-schema-editor-dialog/json-schema-editor-dialog.component';
 import { JsonSchemaEditorService } from '../../services/json-schema-editor.service';
 import { JSONSchemaInfoBasics } from '../../../../api/types';
 import { PropertyTypeItem } from '../../../../variables/properties-viewer/property-type-item/models';
 import { Observable } from 'rxjs';
 import { MODELER_NAME_REGEX } from '../../../../helpers/utils/create-entries-names';
+import { TranslateService } from '@ngx-translate/core';
+import { map } from 'rxjs/operators';
+const isEqual = require('lodash/isEqual');
+const cloneDeep = require('lodash/cloneDeep');
 
 @Component({
     selector: 'modelingsdk-json-schema-editor',
@@ -39,7 +51,7 @@ import { MODELER_NAME_REGEX } from '../../../../helpers/utils/create-entries-nam
         multi: true
     }]
 })
-export class JsonSchemaEditorComponent implements ControlValueAccessor {
+export class JsonSchemaEditorComponent implements ControlValueAccessor, OnChanges {
 
     @Input() value: JSONSchemaInfoBasics = {};
     @Input() key = 'root';
@@ -52,21 +64,65 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
     @Input() filteredReferences: string[] = [];
     @Input() hierarchy: Observable<PropertyTypeItem[]>;
     @Input() compositionIndex = -1;
+    @Input() enableSettingsDialog = true;
+    @Input() allowInLineDefinitions = true;
+    @Input() dataModelType: string;
+    @Input() accessor: any[];
+    @Input() nodeSelectedAccessor: any[];
+    @Input() allowCustomAttributes = true;
+    @Input() allowAttributesPreview = true;
+    @Input() schema: JSONSchemaInfoBasics;
     @Output() changes = new EventEmitter<JSONSchemaInfoBasics>();
     @Output() propertyDeleted = new EventEmitter<string>();
     @Output() childrenDeleted = new EventEmitter<ChildrenDeletedEvent>();
-    @Output() requiredChanges = new EventEmitter<{ key: string, value: boolean }>();
-    @Output() nameChanges = new EventEmitter<{ oldName: string, newName: string }>();
+    @Output() requiredChanges = new EventEmitter<{ key: string; value: boolean }>();
+    @Output() nameChanges = new EventEmitter<{ oldName: string; newName: string }>();
+    @Output() selected = new EventEmitter<any[]>();
 
-    readonly typeNames = TYPES;
+    @ViewChild('rootNode', { static: true })
+    rootNode: HTMLDivElement;
 
-    properties: { key: string, definition: JSONSchemaInfoBasics }[] = [];
+    properties: { key: string; definition: JSONSchemaInfoBasics }[] = [];
     definitions: JSONSchemaDefinition[] = [];
     collapsed = false;
     definitionsCollapsed = false;
     type: string[] = [];
+    typeNames: JSONSchemaTypeDropdownDefinition;
+    nodeSelected = false;
+    customizations: JsonNodeCustomization;
+    customHierarchy: Observable<PropertyTypeItem[]>;
+    label: string;
 
-    constructor(private jsonSchemaEditorService: JsonSchemaEditorService, private dialog: MatDialog) { }
+    constructor(
+        private jsonSchemaEditorService: JsonSchemaEditorService,
+        private dialog: MatDialog,
+        private translateService: TranslateService) { }
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['nodeSelectedAccessor']) {
+            this.nodeSelected = isEqual(this.accessor, this.nodeSelectedAccessor);
+        }
+
+        if (this.changesTriggerCustomization(changes)) {
+            this.customizeNode();
+        }
+    }
+
+    private changesTriggerCustomization(changes: SimpleChanges) {
+        const schemaChanges = changes['schema'] &&
+            !changes['schema'].isFirstChange() &&
+            JSON.stringify(changes['schema'].previousValue) !== JSON.stringify(changes['schema'].currentValue);
+
+        const accessorChanges = changes['accessor'] &&
+            !changes['accessor'].isFirstChange() &&
+            JSON.stringify(changes['accessor'].previousValue) !== JSON.stringify(changes['accessor'].currentValue);
+
+        const dataModelTypeChanges = changes['dataModelType'] &&
+            !changes['dataModelType'].isFirstChange() &&
+            JSON.stringify(changes['dataModelType'].previousValue) !== JSON.stringify(changes['dataModelType'].currentValue);
+
+        return schemaChanges || accessorChanges || dataModelTypeChanges;
+    }
 
     get regex(): RegExp {
         if (this.enableKeyEdition) {
@@ -85,6 +141,85 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
             this.type = this.jsonSchemaEditorService.getTypes(this.value);
             this.initProperties();
             this.getDefinitionsInSchema();
+            this.customizeNode();
+        }
+
+        if (!this.schema || this.depth === 0) {
+            this.schema = cloneDeep(this.value);
+        }
+        if (!this.accessor || this.depth === 0) {
+            this.accessor = [this.key];
+        }
+        this.nodeSelected = isEqual(this.accessor, this.nodeSelectedAccessor);
+    }
+
+    private customizeNode() {
+        this.customizations = this.jsonSchemaEditorService.getNodeCustomizationsForDataModelType(this.dataModelType, this.schema, this.accessor);
+        this.typeNames = this.customizations.type.definitions;
+        this.customHierarchy = this.getCustomHierarchy(this.hierarchy, this.customizations.type.references);
+
+        if (this.customizations.key?.value) {
+            this.label = this.translateService.instant(this.customizations.key.value);
+        }
+
+        if (this.customizations.required?.value) {
+            this.required = this.customizations.required.value;
+        }
+
+        if (this.customizations.title?.value) {
+            this.value.title = this.customizations.title.value;
+        }
+
+        if (this.customizations.type?.value) {
+            this.type = this.customizations.type.value;
+        }
+    }
+
+    private getCustomHierarchy(hierarchy: Observable<PropertyTypeItem[]>, references: { whiteList?: string[], blacklist?: string[] }): Observable<PropertyTypeItem[]> {
+        return hierarchy.pipe(map(initialHierarchy => {
+            const result: PropertyTypeItem[] = [...initialHierarchy];
+
+            if (references?.whiteList) {
+                this.filterReferencesStartingWith(result, references.whiteList, true);
+            }
+
+            if (references?.blacklist) {
+                this.filterReferencesStartingWith(result, references.blacklist, false);
+            }
+
+            return result.filter(item => item.children?.length > 0 || item.value?.$ref);
+        }));
+    }
+
+    private filterReferencesStartingWith(hierarchy: PropertyTypeItem[], filteredReferences: string[], whiteList: boolean) {
+        if (filteredReferences && hierarchy) {
+            if (whiteList) {
+                for (let hierarchyIndex = hierarchy.length - 1; hierarchyIndex >= 0; hierarchyIndex--) {
+                    const item = hierarchy[hierarchyIndex];
+
+                    if (item.children && item.children.length > 0) {
+                        this.filterReferencesStartingWith(item.children, filteredReferences, whiteList);
+                    } else if (item.value?.$ref) {
+                        const reference = item.value?.$ref;
+                        if (!filteredReferences.some(filter => reference.startsWith(filter))) {
+                            hierarchy.splice(hierarchyIndex, 1);
+                        }
+                    }
+                }
+            } else {
+                for (let hierarchyIndex = 0; hierarchyIndex < hierarchy.length; hierarchyIndex++) {
+                    const item = hierarchy[hierarchyIndex];
+
+                    if (item.children && item.children.length > 0) {
+                        this.filterReferencesStartingWith(item.children, filteredReferences, whiteList);
+                    } else if (item.value?.$ref) {
+                        const reference = item.value?.$ref;
+                        if (filteredReferences.some(filter => reference.startsWith(filter))) {
+                            hierarchy.splice(hierarchyIndex, 1);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -99,8 +234,8 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
     private initProperties() {
         this.properties = [];
 
-        if (!!this.value.properties) {
-            Object.keys(this.value.properties).forEach(key => this.properties.push({ key, definition: this.value.properties![key] }));
+        if (this.value.properties) {
+            Object.keys(this.value.properties).forEach(key => this.properties.push({ key, definition: this.value.properties?.[key] }));
         }
     }
 
@@ -118,7 +253,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
     onAddProperty() {
         this.value.properties = this.value.properties || {};
         const name = this.generateName(this.key, this.properties.length);
-        this.value.properties[name] = {};
+        this.value.properties[name] = this.jsonSchemaEditorService.addPropertyForDataModelType(this.dataModelType, this.schema, this.accessor);
         this.initProperties();
         this.collapsed = false;
         this.onChanges();
@@ -127,7 +262,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
     onAddDefinition() {
         this.value.$defs = this.value.$defs || {};
         const name = this.generateName('definition', Object.keys(this.value.$defs).length);
-        this.value.$defs[name] = { type: 'object', title: '' };
+        this.value.$defs[name] = this.jsonSchemaEditorService.addDefinitionForDataModelType(this.dataModelType, this.schema, this.accessor);
         this.getDefinitionsInSchema();
         this.definitionsCollapsed = false;
         this.onChanges();
@@ -139,7 +274,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
         if (!(<any>this.value)[accessor]) {
             (<any>this.value)[accessor] = [];
         }
-        (<any>this.value)[accessor].push({ type: 'object' });
+        (<any>this.value)[accessor].push(this.jsonSchemaEditorService.addChildForDataModelType(this.dataModelType, this.schema, this.accessor, type));
 
         this.collapsed = false;
         this.onChanges();
@@ -159,7 +294,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
 
     onTypeChanges(event: MatOptionSelectionChange) {
         if (event.isUserInput) {
-            this.jsonSchemaEditorService.setType(event.source.value, event.source.selected, this.value);
+            this.jsonSchemaEditorService.setType(event.source.value, event.source.selected, this.value, this.dataModelType, this.schema, this.accessor);
             this.type = this.jsonSchemaEditorService.getTypes(this.value);
 
             if (this.type.indexOf('object') === -1) {
@@ -167,6 +302,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
             }
 
             this.initProperties();
+            this.customizeNode();
             this.onChanges();
         }
     }
@@ -214,7 +350,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
         this.requiredChanges.emit({ key: this.key, value: checkboxChange.checked });
     }
 
-    onRequiredChanges(change: { key: string, value: boolean }) {
+    onRequiredChanges(change: { key: string; value: boolean }) {
         if (change.value) {
             if (this.value.required && this.value.required.indexOf(change.key) === -1) {
                 this.value.required.push(change.key);
@@ -244,7 +380,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
         }
     }
 
-    onNameChanges(changes: { oldName: string, newName: string }) {
+    onNameChanges(changes: { oldName: string; newName: string }) {
         if (this.value.type === 'object' && this.value.properties) {
             const newProperties = {};
             Object.keys(this.value.properties).forEach(key => {
@@ -268,7 +404,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
         this.onChanges();
     }
 
-    onDefinitionNameChanges(changes: { oldName: string, newName: string }) {
+    onDefinitionNameChanges(changes: { oldName: string; newName: string }) {
         if (this.value.$defs) {
             const newDefinitions = {};
             Object.keys(this.value.$defs).forEach(key => {
@@ -312,11 +448,13 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
     }
 
     onSettings() {
-        const typeAttributes = this.jsonSchemaEditorService.advancedAttr(this.value);
-
         const data: JSONSchemaEditorDialogData = {
-            typeAttributes,
-            value: this.value
+            value: this.value,
+            dataModelType: this.dataModelType,
+            allowCustomAttributes: this.allowCustomAttributes,
+            allowAttributesPreview: this.allowAttributesPreview,
+            schema: this.schema,
+            accessor: this.accessor
         };
 
         const dialogRef = this.dialog.open(JsonSchemaEditorDialogComponent, {
@@ -324,12 +462,9 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
             minWidth: '520px'
         });
 
-        dialogRef.afterClosed().subscribe((result: { node: JSONSchemaInfoBasics, customAttributesDeleted: string[] }) => {
-            if (!!result) {
-                Object.assign(this.value, result.node);
-                Object.keys(typeAttributes).filter(key => this.isNull((<any>result.node)[key])).forEach(key => delete (<any>this.value)[key]);
-                result.customAttributesDeleted.forEach(key => delete (<any>this.value)[key]);
-                this.onChanges();
+        dialogRef.afterClosed().subscribe((result: JSONSchemaInfoBasics) => {
+            if (result) {
+                this.value = result;
             }
         });
     }
@@ -356,7 +491,7 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
         if (!this.isEmpty(this.value.allOf)) {
             return 'allOf';
         }
-        if (!!this.value.items) {
+        if (this.value.items) {
             return 'array';
         }
 
@@ -365,5 +500,15 @@ export class JsonSchemaEditorComponent implements ControlValueAccessor {
 
     private isEmpty(array: JSONSchemaInfoBasics[]): boolean {
         return array?.length === 0 || array?.length === undefined;
+    }
+
+    focused(focused: boolean) {
+        if (focused) {
+            this.selectItem(this.accessor);
+        }
+    }
+
+    selectItem(accessor: any[]) {
+        this.selected.emit(accessor);
     }
 }

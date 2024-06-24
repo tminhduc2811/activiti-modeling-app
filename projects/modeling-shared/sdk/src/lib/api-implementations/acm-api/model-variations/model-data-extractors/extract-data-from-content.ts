@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-export function extractDataFromContent<T, K>(property: string, content: T, metadata: K) {
+export function extractDataFromContent<T>(property: string, content: T) {
     switch (property) {
-        case 'name':
-            return content['name'];
-        case 'description':
-            return content['description'];
-        default:
-            return null;
+    case 'name':
+        return content['name'];
+    case 'description':
+        return content['description'];
+    default:
+        return null;
     }
 }

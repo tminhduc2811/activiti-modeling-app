@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, ViewChild, ChangeDetectorRef, AfterViewInit, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatTableDataSource } from '@angular/material/table';
@@ -39,7 +41,7 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
     @Input() types: string[] = primitive_types;
     @Input() properties = '';
     @Input() requiredCheckbox = true;
-    @Input() displayedColumns = ['name', 'type', 'required', 'value', 'delete'];
+    @Input() displayedColumns = ['name', 'type', 'required', 'displayName', 'value', 'delete'];
     @Input() filterValue = '';
     @Input() filterPlaceholder: string;
     @Input() allowExpressions = false;
@@ -105,9 +107,10 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
             const dataArray = Object.values(parsedData);
 
             this.dataSource = new MatTableDataSource(dataArray);
+            this.applyFilter(this.filterValue);
             this.data = parsedData;
 
-            const item = dataArray.find((_, index) => index === this.position);
+            const item = this.dataSource.filteredData.find((_, index) => index === this.position);
 
             if (item) {
                 this.form = item;
@@ -117,6 +120,16 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
         });
 
         this.dataSource.filterPredicate = (data, filter) => (data.name.trim().toLowerCase().indexOf(filter.trim().toLowerCase()) !== -1);
+    }
+
+    showDisplayName(value: boolean) {
+        this.form.display = value;
+
+        if (!this.form.display) {
+            this.form.displayName = undefined;
+        }
+
+        this.saveChanges();
     }
 
     ngOnChanges(changes: SimpleChanges) {
@@ -220,11 +233,19 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
             return 'SDK.VARIABLES_EDITOR.ERRORS.EMPTY_TYPE';
         }
 
+        if (this.hasVariableWithoutDisplayName(entityProperties)) {
+            return 'SDK.VARIABLES_EDITOR.ERRORS.EMPTY_DISPLAY_NAME';
+        }
+
         return null;
     }
 
     private hasVariableWithoutType(entityProperties: EntityProperties) {
         return !!Object.keys(entityProperties).find(variable => !entityProperties[variable].type);
+    }
+
+    hasVariableWithoutDisplayName(entityProperties: EntityProperties) {
+        return Object.keys(entityProperties).some(variable => entityProperties[variable].display && !entityProperties[variable].displayName);
     }
 
     updateVariableValue(value?: any): void {
@@ -268,7 +289,7 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
         return Object.values(data).every(item => !!item.name.trim().length);
     }
 
-    isValidJson(value?: string | Object) {
+    isValidJson(value?: string | any) {
         if (!value || typeof value === 'object') {
             return true;
         }
@@ -276,7 +297,7 @@ export class PropertiesViewerComponent implements OnInit, OnChanges, OnDestroy, 
         return this.codeValidatorService.validateJson(value).valid;
     }
 
-    getValueErrorMessage(value: string | Object, type: string): string {
+    getValueErrorMessage(value: string | any, type: string): string {
         if (type === 'json' && !this.isValidJson(value)) {
             return 'APP.GENERAL.ERRORS.NOT_VALID_JSON';
         }

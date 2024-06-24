@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-import { Form, FormContent } from '../../../../api/types';
+import { FormContent } from '../../../../api/types';
 
-export function extractFormData(property: string, content: FormContent, metadata: Form) {
+export function extractFormData(property: string, content: FormContent) {
     switch (property) {
-        case 'name':
-            return content.formRepresentation.name;
-        case 'description':
-            return content.formRepresentation.description;
-        default:
-            return null;
+    case 'name':
+        return content.formRepresentation.name;
+    case 'description':
+        return content.formRepresentation.description;
+    default:
+        return null;
     }
 }

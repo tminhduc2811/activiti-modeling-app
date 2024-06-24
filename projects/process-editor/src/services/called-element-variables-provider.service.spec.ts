@@ -16,7 +16,7 @@
  */
 
 import { BpmnElement } from '@alfresco-dbp/modeling-shared/sdk';
-import { async, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { CalledElementVariablesProviderService } from './called-element-variables-provider.service';
@@ -85,21 +85,19 @@ const processExtensions = {
 describe('CalledElementVariablesProviderService', () => {
     let service: CalledElementVariablesProviderService;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [
                 CalledElementVariablesProviderService,
                 {
                     provide: Store,
                     useValue: {
-                        select: jest.fn().mockImplementation(() => {
-                            return of([processExtensions]);
-                        })
+                        select: jest.fn().mockImplementation(() => of([processExtensions]))
                     }
                 }
             ]
         });
-    }));
+    });
 
     beforeEach(() => {
         service = TestBed.inject(CalledElementVariablesProviderService);

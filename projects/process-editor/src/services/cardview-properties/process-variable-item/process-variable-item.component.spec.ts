@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ComponentFixture, TestBed, async } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CardViewProcessVariablesItemComponent } from './process-variable-item.component';
 import { Store } from '@ngrx/store';
 import { ProcessEditorState } from '../../../store/process-editor.state';
@@ -29,14 +29,14 @@ describe('ProcessVariableItemComponent', () => {
     let component: CardViewProcessVariablesItemComponent;
     let store: Store<ProcessEditorState>;
 
-    beforeEach(async(() => {
+    beforeEach(() => {
         TestBed.configureTestingModule({
             providers: [{provide: Store, useValue: { dispatch: jest.fn()}}],
             declarations: [CardViewProcessVariablesItemComponent],
             imports: [TranslateModule.forRoot()],
             schemas: [ NO_ERRORS_SCHEMA]
-        }).compileComponents();
-    }));
+        });
+    });
 
     beforeEach(() => {
         fixture = TestBed.createComponent(CardViewProcessVariablesItemComponent);
@@ -48,7 +48,7 @@ describe('ProcessVariableItemComponent', () => {
     it('template should have button', () => {
         const button = fixture.nativeElement.querySelector('button');
         expect (button === null).toBeFalsy();
-        expect(button.innerHTML).toEqual('<mat-icon class=\"ama-variables-icon\">layers</mat-icon>APP.DIALOGS.EDIT_PROPERTIES');
+        expect(button.innerHTML).toEqual('<mat-icon class="ama-variables-icon">layers</mat-icon>APP.DIALOGS.EDIT_PROPERTIES');
     });
 
     it('clicking on edit button should dispatch a OPEN_VARIABLES_DIALOG action', () => {

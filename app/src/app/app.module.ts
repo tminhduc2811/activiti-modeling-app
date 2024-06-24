@@ -25,7 +25,6 @@ import { MatInputModule } from '@angular/material/input';
 import {
     ACMApiModule,
     AmaServicesModule,
-    AuthTokenProcessorService,
     allLogFilter,
     provideLogFilter,
     featuresInfo,
@@ -35,7 +34,7 @@ import { DialogsModule } from '@alfresco-dbp/adf-candidates/core/dialog';
 import { AppExtensionsModule } from './extensions.module';
 import { ProcessEditorModule } from '@alfresco-dbp/modeling-ce/process-editor';
 import { ProjectEditorModule } from '@alfresco-dbp/modeling-ce/project-editor';
-import { AboutModule, OriginsAppShellModule, StudioAppShellModule } from '@alfresco-dbp/modeling-ce/app-shell';
+import { AboutModule, StudioAppShellModule } from '@alfresco-dbp/modeling-ce/app-shell';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../environments/environment';
 import { EnvironmentModule } from '@alfresco-dbp/adf-candidates/core/environment';
@@ -45,12 +44,12 @@ import { EnvironmentModule } from '@alfresco-dbp/adf-candidates/core/environment
         AmaServicesModule.forApplication(),
         ACMApiModule.forRoot(),
         DashboardModule,
-        ProjectEditorModule.forRoot(environment),
+        ProjectEditorModule,
         ProcessEditorModule,
         ConnectorEditorModule,
         MatInputModule,
         DialogsModule,
-        ...(environment.features.studioLayout ? [ StudioAppShellModule ] : [ OriginsAppShellModule ]),
+        StudioAppShellModule,
         AppExtensionsModule,
         environment.devTools ? StoreDevtoolsModule.instrument({ maxAge: 25 }) : [],
         EnvironmentModule.forRoot(environment, featuresInfo, STUDIO_ENVIRONMENT_SERVICE_TOKEN),
@@ -60,7 +59,6 @@ import { EnvironmentModule } from '@alfresco-dbp/adf-candidates/core/environment
         AppComponent
     ],
     providers: [
-        AuthTokenProcessorService,
         provideLogFilter(allLogFilter)
     ],
     bootstrap: [AppComponent]

@@ -42,6 +42,7 @@ import { IsAnyTypePipe } from '../../pipes/is-any-type-pipe/is-any-type.pipe';
 import { IsNotTypePipe } from '../../pipes/is-not-type-pipe/is-not-type.pipe';
 import { RequiredPipe } from '../../pipes/required-pipe/required.pipe';
 import { JsonSchemaEditorDialogComponent } from '../json-schema-editor-dialog/json-schema-editor-dialog.component';
+import { AccessorPipe } from './accessor.pipe';
 import { JsonSchemaEditorComponent } from './json-schema-editor.component';
 
 describe('JsonSchemaEditorComponent', () => {
@@ -59,7 +60,8 @@ describe('JsonSchemaEditorComponent', () => {
                 RequiredPipe,
                 IsAnyTypePipe,
                 IsNotTypePipe,
-                DisplayAddMenuPipe
+                DisplayAddMenuPipe,
+                AccessorPipe
             ],
             imports: [
                 CommonModule,
@@ -93,11 +95,11 @@ describe('JsonSchemaEditorComponent', () => {
 
         fixture = TestBed.createComponent(JsonSchemaEditorComponent);
         component = fixture.componentInstance;
+
+        component.writeValue({ type: 'object' });
         fixture.detectChanges();
 
         dialog = TestBed.inject(MatDialog);
-
-        component.writeValue({ type: 'object' });
 
         mockSchema = deepCopy(mockJsonSchema);
         spyOn(component.changes, 'emit');
@@ -337,13 +339,11 @@ describe('JsonSchemaEditorComponent', () => {
             spyOn(dialog, 'open').and.returnValue({ afterClosed: () => of({}) } as any);
             const expectedArguments = {
                 data: {
-                    typeAttributes: {
-                        description: { id: 'description', name: 'SDK.JSON_SCHEMA_EDITOR.ATTRIBUTES.DESCRIPTION', type: 'string' },
-                        additionalProperties: { id: 'additionalProperties', name: 'SDK.JSON_SCHEMA_EDITOR.ATTRIBUTES.ADDITIONAL_PROPERTIES', type: 'boolean' },
-                        maxProperties: { id: 'maxProperties', name: 'SDK.JSON_SCHEMA_EDITOR.ATTRIBUTES.MAX_PROPERTIES', type: 'integer' },
-                        minProperties: { id: 'minProperties', name: 'SDK.JSON_SCHEMA_EDITOR.ATTRIBUTES.MIN_PROPERTIES', type: 'integer' }
-                    },
-                    value: { type: 'object' }
+                    value: { type: 'object' },
+                    allowAttributesPreview: true,
+                    allowCustomAttributes: true,
+                    accessor: ['root'],
+                    schema: { type: 'object' }
                 },
                 minWidth: '520px'
             };
@@ -406,6 +406,7 @@ function deepCopy(obj: any): any {
     if (obj instanceof Object) {
         copy = {};
         for (const attr in obj) {
+            // eslint-disable-next-line no-prototype-builtins
             if (obj.hasOwnProperty(attr)) {
                 (<any>copy)[attr] = deepCopy(obj[attr]);
             }

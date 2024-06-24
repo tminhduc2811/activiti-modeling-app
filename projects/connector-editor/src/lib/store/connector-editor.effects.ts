@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { Inject, Injectable } from '@angular/core';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { map, switchMap, catchError, mergeMap, take, withLatestFrom, tap } from 'rxjs/operators';
@@ -49,11 +51,14 @@ import {
     SHOW_CONNECTORS,
     ConnectorContent,
     CONNECTOR_MODEL_ENTITY_SELECTORS,
-    ModelEntitySelectors
+    ModelEntitySelectors,
+    UpdateTabTitle,
+    SetLogHistoryVisibilityAction,
+    TabManagerService
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { DialogService } from '@alfresco-dbp/adf-candidates/core/dialog';
 import { ConnectorEditorService } from '../services/connector-editor.service';
-import { of, zip, forkJoin, Observable } from 'rxjs';
+import { of, zip, forkJoin, Observable, EMPTY } from 'rxjs';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { selectConnectorsLoaded } from './connector-editor.selectors';
@@ -86,7 +91,8 @@ import {
     GetConnectorsSuccessAction,
     GetConnectorSuccessAction,
     ValidateConnectorSuccessAction,
-    VALIDATE_CONNECTOR_SUCCESS} from './connector-editor.actions';
+    VALIDATE_CONNECTOR_SUCCESS,
+    DraftDeleteConnectorAction} from './connector-editor.actions';
 import { getConnectorLogInitiator } from '../services/connector-editor.constants';
 import { TranslationService } from '@alfresco/adf-core';
 
@@ -102,6 +108,7 @@ export class ConnectorEditorEffects {
         private translationService: TranslationService,
         @Inject(CONNECTOR_MODEL_ENTITY_SELECTORS)
         private entitySelector: ModelEntitySelectors,
+        private tabManagerService: TabManagerService
     ) {}
 
     @Effect()
@@ -136,8 +143,12 @@ export class ConnectorEditorEffects {
     deleteConnectorSuccessEffect = this.actions$.pipe(
         ofType<DeleteConnectorSuccessAction>(DELETE_CONNECTOR_SUCCESS),
         withLatestFrom(this.store.select(selectSelectedProjectId)),
-        map(([action, projectId]) => {
-            this.router.navigate(['/projects', projectId]);
+        map(([deletedSuccessAction, projectId]) => {
+            if (!this.tabManagerService.isTabListEmpty()) {
+                this.tabManagerService.removeTabByModelId(deletedSuccessAction.connectorId);
+            } else {
+                void this.router.navigate(['/projects', projectId]);
+            }
         })
     );
 
@@ -147,7 +158,7 @@ export class ConnectorEditorEffects {
         withLatestFrom(this.store.select(selectSelectedProjectId)),
         tap(([action, projectId]) => {
             if (action.navigateTo) {
-                this.router.navigate(['/projects', projectId, 'connector', action.connector.id]);
+                void this.router.navigate(['/projects', projectId, 'connector', action.connector.id]);
             }
         })
     );
@@ -175,7 +186,8 @@ export class ConnectorEditorEffects {
     @Effect()
     updateConnectorSuccessEffect = this.actions$.pipe(
         ofType<UpdateConnectorSuccessAction>(UPDATE_CONNECTOR_SUCCESS),
-        mergeMap(() => [
+        mergeMap((action) => [
+            new UpdateTabTitle(action.connector.changes.name, action.connector.id),
             new SetApplicationLoadingStateAction(false),
             new SetAppDirtyStateAction(false)
         ])
@@ -191,9 +203,7 @@ export class ConnectorEditorEffects {
     createConnectorEffect = this.actions$.pipe(
         ofType<CreateConnectorAttemptAction>(CREATE_CONNECTOR_ATTEMPT),
         mergeMap(action => zip(of(action), this.store.select(selectSelectedProjectId))),
-        mergeMap(([action, projectId]) => {
-            return this.createConnector(action.payload, action.navigateTo, projectId, action.callback);
-        })
+        mergeMap(([action, projectId]) => this.createConnector(action.payload, action.navigateTo, projectId, action.callback))
     );
 
     @Effect()
@@ -205,7 +215,7 @@ export class ConnectorEditorEffects {
             if (!loaded) {
                 return of(new GetConnectorsAttemptAction(projectId));
             } else {
-                return of();
+                return EMPTY;
             }
         })
     );
@@ -238,9 +248,7 @@ export class ConnectorEditorEffects {
     saveAsConnectorEffect = this.actions$.pipe(
         ofType<SaveAsConnectorAttemptAction>(SAVE_AS_CONNECTOR_ATTEMPT),
         mergeMap(action => zip(of(action), this.store.select(selectSelectedProjectId))),
-        mergeMap(([action, projectId]) => {
-            return this.saveAsConnector(action.payload, action.navigateTo, projectId);
-        })
+        mergeMap(([action, projectId]) => this.saveAsConnector(action.payload, action.navigateTo, projectId))
     );
 
     private validateConnector({ modelId, modelContent, action, title, errorAction, projectId }: ValidateConnectorPayload) {
@@ -251,7 +259,8 @@ export class ConnectorEditorEffects {
                 if (errorAction) {
                     return [
                         errorAction,
-                        this.logFactory.logError(getConnectorLogInitiator(), errors)
+                        this.logFactory.logError(getConnectorLogInitiator(), errors),
+                        new SetLogHistoryVisibilityAction(true)
                     ];
                 }
                 return [
@@ -263,13 +272,13 @@ export class ConnectorEditorEffects {
                             messages: errors
                         }
                     }),
-                        this.logFactory.logError(getConnectorLogInitiator(), errors)
-                    ];
+                    this.logFactory.logError(getConnectorLogInitiator(), errors)
+                ];
             })
         );
     }
 
-    private uploadConnector(payload: UploadFileAttemptPayload): Observable<void | {} | SnackbarInfoAction |CreateConnectorSuccessAction> {
+    private uploadConnector(payload: UploadFileAttemptPayload): Observable<void | any | SnackbarInfoAction |CreateConnectorSuccessAction> {
         const file = changeFileName(payload.file, payload.file.name);
         return this.connectorEditorService.upload({ ...payload, file }).pipe(
             switchMap((connector: Connector) => [
@@ -287,14 +296,14 @@ export class ConnectorEditorEffects {
         );
     }
 
-    private getConnectors(projectId: string): Observable<{} | GetConnectorsSuccessAction> {
+    private getConnectors(projectId: string): Observable<any | GetConnectorsSuccessAction> {
         return this.connectorEditorService.fetchAll(projectId).pipe(
             mergeMap(connectors => of(new GetConnectorsSuccessAction(connectors))),
-            catchError(_ => this.handleError('PROJECT_EDITOR.ERROR.LOAD_MODELS')));
+            catchError(() => this.handleError('PROJECT_EDITOR.ERROR.LOAD_MODELS')));
     }
 
     private createConnector(form: Partial<EntityDialogForm>, navigateTo: boolean,
-        projectId: string, callback: Function): Observable<{} | SnackbarInfoAction | CreateConnectorSuccessAction> {
+                            projectId: string, callback: (param: Connector) => any): Observable<any | SnackbarInfoAction | CreateConnectorSuccessAction> {
         return this.connectorEditorService.create(form, projectId).pipe(
             tap((connector) => callback && callback(connector)),
             mergeMap((connector) => [
@@ -304,7 +313,7 @@ export class ConnectorEditorEffects {
             catchError(e => this.handleConnectorCreationError(e)));
     }
 
-    private deleteConnector(connectorId: string): Observable<{} | SnackbarInfoAction | UpdateConnectorSuccessAction> {
+    private deleteConnector(connectorId: string): Observable<any | SnackbarInfoAction | UpdateConnectorSuccessAction> {
         return this.connectorEditorService.delete(connectorId).pipe(
             mergeMap(() => [
                 new DeleteConnectorSuccessAction(connectorId),
@@ -315,10 +324,11 @@ export class ConnectorEditorEffects {
             catchError(e => this.handleConnectorUpdatingError(e)));
     }
 
-    private updateConnector(connector: Connector, content: ConnectorContent, projectId: string): Observable<{} | SnackbarInfoAction | UpdateConnectorSuccessAction> {
+    private updateConnector(connector: Connector, content: ConnectorContent, projectId: string): Observable<any | SnackbarInfoAction | UpdateConnectorSuccessAction> {
         return this.connectorEditorService.update(connector.id, connector, content, projectId).pipe(
             switchMap(() => [
                 new SetApplicationLoadingStateAction(true),
+                new DraftDeleteConnectorAction(connector.id),
                 new UpdateConnectorSuccessAction({ id: connector.id, changes: content }),
                 this.logFactory.logInfo(getConnectorLogInitiator(), 'PROJECT_EDITOR.CONNECTOR_DIALOG.CONNECTOR_UPDATED'),
                 new SnackbarInfoAction('PROJECT_EDITOR.CONNECTOR_DIALOG.CONNECTOR_UPDATED')
@@ -335,10 +345,10 @@ export class ConnectorEditorEffects {
                 new GetConnectorSuccessAction(connector, connectorContent),
                 ...(loadConnector ? [new ModelOpenedAction({ id: connectorId, type: CONNECTOR })] : [])
             ]),
-            catchError(_ => this.handleError('ADV_CONNECTOR_EDITOR.ERRORS.GET_CONNECTOR')));
+            catchError(() => this.handleError('ADV_CONNECTOR_EDITOR.ERRORS.GET_CONNECTOR')));
     }
 
-    private handleConnectorUpdatingError(error: ErrorResponse): Observable<SnackbarErrorAction | {}> {
+    private handleConnectorUpdatingError(error: ErrorResponse): Observable<SnackbarErrorAction | any> {
         let errorMessage;
 
         if (error.status === 409) {
@@ -367,11 +377,11 @@ export class ConnectorEditorEffects {
     }
 
     private downloadConnector(modelId: string) {
-       return this.store.select(this.entitySelector.selectModelContentById(modelId)).pipe(
-           map(content => this.connectorEditorService.download(content.name, JSON.stringify(content))),
-           map(() => new SetApplicationLoadingStateAction(false)),
-           take(1)
-       );
+        return this.store.select(this.entitySelector.selectModelContentById(modelId)).pipe(
+            map(content => this.connectorEditorService.download(content.name, JSON.stringify(content))),
+            map(() => new SetApplicationLoadingStateAction(false)),
+            take(1)
+        );
     }
 
     private openSaveAsConnectorDialog(data: SaveAsDialogPayload) {
@@ -381,7 +391,7 @@ export class ConnectorEditorEffects {
     private saveAsConnector(
         connectorData: Partial<SaveAsDialogPayload>,
         navigateTo: boolean,
-        projectId: string): Observable<{} | SnackbarInfoAction | CreateConnectorSuccessAction> {
+        projectId: string): Observable<any | SnackbarInfoAction | CreateConnectorSuccessAction> {
         return this.connectorEditorService.create(connectorData, projectId).pipe(
             tap(() => this.updateContentOnSaveAs(connectorData)),
             mergeMap((connector) => this.connectorEditorService.update(connector.id, connector, connectorData.sourceModelContent, projectId)),

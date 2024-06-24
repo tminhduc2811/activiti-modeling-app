@@ -24,12 +24,64 @@ import { numberTypeSpecificProperties } from './number';
 import { objectTypeSpecificProperties } from './object';
 import { stringTypeSpecificProperties } from './string';
 
-export const TYPES: { name: string, value: string[] }[] = [
-    { name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.JSON_SCHEMA_TYPES', value: ['array', 'boolean', 'integer', 'object', 'number', 'string'] },
-    { name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.MODELING_APP', value: ['date', 'datetime', 'file', 'folder'] },
-    { name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.ENUMERATION', value: ['enum'] },
-    { name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.COMPOSITION', value: ['allOf', 'anyOf', 'oneOf', 'ref'] }
-];
+export const TYPES: JSONSchemaTypeDropdownDefinition = {
+    multiple: true,
+    groups: true,
+    groupOptions: [
+        {
+            name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.JSON_SCHEMA_TYPES',
+            value: [
+                { label: 'array', id: 'array' },
+                { label: 'boolean', id: 'boolean' },
+                { label: 'integer', id: 'integer' },
+                { label: 'object', id: 'object' },
+                { label: 'number', id: 'number' },
+                { label: 'string', id: 'string' }
+            ]
+        },
+        {
+            name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.MODELING_APP',
+            value: [
+                { label: 'date', id: 'date' },
+                { label: 'datetime', id: 'datetime' },
+                { label: 'file', id: 'file' },
+                { label: 'folder', id: 'folder' }
+            ]
+        },
+        {
+            name:
+                'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.ENUMERATION',
+            value: [
+                { label: 'enum', id: 'enum' }
+            ]
+        },
+        {
+            name: 'SDK.JSON_SCHEMA_EDITOR.TYPES_GROUPS.COMPOSITION',
+            value: [
+                { label: 'allOf', id: 'allOf' },
+                { label: 'anyOf', id: 'anyOf' },
+                { label: 'oneOf', id: 'oneOf' },
+                { label: 'ref', id: 'ref' }
+            ]
+        }
+    ]
+};
+
+export interface JSONSchemaTypeDropdownDefinition {
+    multiple: boolean,
+    groups: boolean,
+    groupOptions?: {
+        name: string;
+        value: {
+            label: string;
+            id: string;
+        }[]
+    }[];
+    options?: {
+        label: string;
+        id: string;
+    }[]
+}
 
 export const TYPE: { [key: string]: JSONTypePropertiesDefinition } = {
     object: objectTypeSpecificProperties,
@@ -58,10 +110,85 @@ export interface JSONTypePropertiesDefinition {
 
 export interface JSONSchemaEditorDialogData {
     value: JSONSchemaInfoBasics;
-    typeAttributes: JSONTypePropertiesDefinition;
+    dataModelType: string;
+    allowCustomAttributes: boolean;
+    allowAttributesPreview: boolean;
+    schema: JSONSchemaInfoBasics;
+    accessor: string[];
 }
 
 export interface ChildrenDeletedEvent {
     compositionType: string;
     index: number;
+}
+
+export interface JsonNodeCustomization {
+    key: {
+        disabled: boolean;
+        hide: boolean;
+        value?: string;
+    },
+    required: {
+        disabled: boolean;
+        hide: boolean;
+        value?: boolean;
+    }
+    type: {
+        disabled: boolean;
+        hide: boolean;
+        static: boolean;
+        value?: string[];
+        definitions?: JSONSchemaTypeDropdownDefinition;
+        references: {
+            whiteList?: string[];
+            blackList?: string[];
+        };
+    },
+    title: {
+        disabled: boolean;
+        hide: boolean;
+        value?: string;
+    },
+    buttonTooltips: {
+        anyOf: string;
+        allOf: string;
+        oneOf: string;
+        property: string;
+        definition: string;
+    }
+}
+
+export class DefaultJsonNodeCustomization implements JsonNodeCustomization {
+    key = {
+        disabled: false,
+        hide: false
+    };
+
+    required = {
+        disabled: false,
+        hide: false
+    };
+
+    type = {
+        disabled: false,
+        hide: false,
+        static: false,
+        definitions: TYPES,
+        references: {
+            blackList: []
+        }
+    };
+
+    title = {
+        disabled: false,
+        hide: false
+    };
+
+    buttonTooltips = {
+        anyOf: 'SDK.JSON_SCHEMA_EDITOR.ADD_CHILD_ANY_OF',
+        allOf: 'SDK.JSON_SCHEMA_EDITOR.ADD_CHILD_ALL_OF',
+        oneOf: 'SDK.JSON_SCHEMA_EDITOR.ADD_CHILD_ONE_OF',
+        property: 'SDK.JSON_SCHEMA_EDITOR.ADD_PROPERTY',
+        definition: 'SDK.JSON_SCHEMA_EDITOR.ADD_DEFINITION',
+    };
 }

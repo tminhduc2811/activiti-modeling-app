@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
 import { Component, OnInit, Inject, ViewEncapsulation } from '@angular/core';
 import { ConnectorParameter, ElementVariable, EntityProperty, ProcessEditorElementVariable, ServiceParameterMapping } from '../../api/types';
 import { VariableMappingType, MappingRowModel, MappingValueType, MappingDialogService, MappingDialogData } from '../../services/mapping-dialog.service';
@@ -62,6 +63,9 @@ export class MappingDialogComponent implements OnInit {
     extendedProperties = {};
     editorVariables: ProcessEditorElementVariable[];
     expressionEditorVariables: ElementVariable[];
+    enableVariableSelection = true;
+    enableValueSelection = true;
+    changeDetectorRef = Math.random();
 
     private readonly EXPRESSION_REGEX = /\${([^]*)}/gm;
 
@@ -77,6 +81,8 @@ export class MappingDialogComponent implements OnInit {
         this.outputParameters = this.getSortedCopy(data.outputParameters);
         this.editorVariables = data.editorVariables;
         this.expressionEditorVariables = data.expressionEditorVariables;
+        this.enableVariableSelection = data.enableVariableSelection === false ? data.enableVariableSelection : this.enableVariableSelection;
+        this.enableValueSelection = data.enableValueSelection === false ? data.enableValueSelection : this.enableValueSelection;
         this.processProperties = this.getSortedCopy(this.getVariablesList(this.editorVariables));
         this.mappingType = data.mappingType;
         this.selectedRow = data.selectedRow;
@@ -122,15 +128,15 @@ export class MappingDialogComponent implements OnInit {
         let mapping: ServiceParameterMapping;
         let parameters: ConnectorParameter[];
         switch (type) {
-            case VariableMappingType.output:
-                this.service = this.outputMappingDataSourceService;
-                mapping = this.outputMapping;
-                parameters = this.outputParameters;
-                break;
-            default:
-                this.service = this.inputMappingDataSourceService;
-                mapping = this.inputMapping;
-                parameters = this.inputParameters;
+        case VariableMappingType.output:
+            this.service = this.outputMappingDataSourceService;
+            mapping = this.outputMapping;
+            parameters = this.outputParameters;
+            break;
+        default:
+            this.service = this.inputMappingDataSourceService;
+            mapping = this.inputMapping;
+            parameters = this.inputParameters;
         }
         this.dataSource = this.service.dataSourceInit(mapping, parameters, this.processProperties);
     }
@@ -149,18 +155,18 @@ export class MappingDialogComponent implements OnInit {
 
     private initSelectedTab(i: number, isInit?: boolean) {
         switch (this.dataSource[i].mappingValueType) {
-            case MappingValueType.variable:
-                this.selectedTab = 0;
-                break;
-            case MappingValueType.value:
-                this.selectedTab = 1;
-                break;
-            case MappingValueType.expression:
-                this.selectedTab = 2;
-                break;
-            default:
-                this.selectedTab = 0;
-                break;
+        case MappingValueType.variable:
+            this.selectedTab = 0;
+            break;
+        case MappingValueType.value:
+            this.selectedTab = this.enableVariableSelection ? 1 : 0;
+            break;
+        case MappingValueType.expression:
+            this.selectedTab = this.enableVariableSelection ? (this.enableValueSelection ? 2 : 1) : (this.enableValueSelection ? 1 : 0);
+            break;
+        default:
+            this.selectedTab = 0;
+            break;
         }
 
         if (isInit) {
@@ -170,34 +176,34 @@ export class MappingDialogComponent implements OnInit {
 
     isMappingSelectorEnabled(): boolean {
         switch (this.mappingType) {
-            case VariableMappingType.output:
-                return this.inputParameters !== undefined && this.inputParameters !== null && this.inputParameters.length > 0;
-            default:
-                return this.outputParameters !== undefined && this.outputParameters !== null && this.outputParameters.length > 0;
+        case VariableMappingType.output:
+            return this.inputParameters !== undefined && this.inputParameters !== null && this.inputParameters.length > 0;
+        default:
+            return this.outputParameters !== undefined && this.outputParameters !== null && this.outputParameters.length > 0;
         }
     }
 
     selectedTabChange() {
         switch (this.selectedTab) {
-            case 0:
-                this.dataSource[this.selectedRow].mappingValueType = MappingValueType.variable;
-                this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.variableValue);
-                break;
-            case 1:
-                this.dataSource[this.selectedRow].mappingValueType = MappingValueType.value;
-                if (this.variableValue && this.service.getPrimitiveType(this.dataSource[this.selectedRow].type) === 'json' && this.valueValue) {
-                    this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.parseObjectOrString(this.valueValue));
-                } else {
-                    this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.valueValue);
-                }
-                break;
-            case 2:
-                this.dataSource[this.selectedRow].mappingValueType = MappingValueType.expression;
-                if (this.expressionValue && this.service.getPrimitiveType(this.dataSource[this.selectedRow].type) === 'json' && this.expressionValue) {
-                    this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.parseObjectOrString(this.expressionValue));
-                } else {
-                    this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.expressionValue);
-                }
+        case 0:
+            this.dataSource[this.selectedRow].mappingValueType = MappingValueType.variable;
+            this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.variableValue);
+            break;
+        case 1:
+            this.dataSource[this.selectedRow].mappingValueType = MappingValueType.value;
+            if (this.variableValue && this.service.getPrimitiveType(this.dataSource[this.selectedRow].type) === 'json' && this.valueValue) {
+                this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.parseObjectOrString(this.valueValue));
+            } else {
+                this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.valueValue);
+            }
+            break;
+        case 2:
+            this.dataSource[this.selectedRow].mappingValueType = MappingValueType.expression;
+            if (this.expressionValue && this.service.getPrimitiveType(this.dataSource[this.selectedRow].type) === 'json' && this.expressionValue) {
+                this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.parseObjectOrString(this.expressionValue));
+            } else {
+                this.service.setDataSourceValue(this.dataSource, this.selectedRow, this.expressionValue);
+            }
         }
         this.tabCheck = this.selectedTab;
     }
@@ -253,12 +259,14 @@ export class MappingDialogComponent implements OnInit {
         } else {
             this.variableMappingValueChange(event, i);
         }
+        this.changeDetectorRef = Math.random();
     }
 
     variableMappingValueChange(name: string, i: number) {
         this.dataSource[i].mappingValueType = MappingValueType.variable;
         this.variableValue = name;
         this.service.setDataSourceValue(this.dataSource, i, name);
+        this.changeDetectorRef = Math.random();
     }
 
     valueMappingValueChange($event: any, i: number) {
@@ -271,6 +279,7 @@ export class MappingDialogComponent implements OnInit {
             this.expressionValue = JSON.stringify($event);
         }
         this.service.setDataSourceValue(this.dataSource, i, value);
+        this.changeDetectorRef = Math.random();
     }
 
     valueMappingExpressionChange($event: string, i: number) {
@@ -282,6 +291,7 @@ export class MappingDialogComponent implements OnInit {
         } else {
             this.service.setDataSourceValue(this.dataSource, i, this.expressionValue);
         }
+        this.changeDetectorRef = Math.random();
     }
 
     outputMappingDestinationChange($event: MatSelectChange) {
@@ -292,11 +302,12 @@ export class MappingDialogComponent implements OnInit {
         }
         this.dataSource[this.selectedRow].type = processVariable.type;
         this.dataSource[this.selectedRow].value = $event.value;
+        this.changeDetectorRef = Math.random();
     }
 
     addOutputMapping(defaultOutputParameter: string) {
-        let type = undefined;
-        let label = undefined;
+        let type;
+        let label;
         let mappingValueType = MappingValueType.expression;
         if (defaultOutputParameter) {
             const outputParameter = this.outputParameters.find(parameter => parameter.name === defaultOutputParameter);
@@ -349,15 +360,15 @@ export class MappingDialogComponent implements OnInit {
     private getExtendedProperties(inputType: string): any {
         let extendedProperties;
         switch (inputType) {
-            case 'content-metadata':
-                extendedProperties = { editorVariables: this.editorVariables };
-                break;
-            case 'expression-mapping':
-                extendedProperties = this.extensionObject;
-                extendedProperties['panelWidth'] = 200;
-                break;
-            default:
-                extendedProperties = {};
+        case 'content-metadata':
+            extendedProperties = { editorVariables: this.editorVariables };
+            break;
+        case 'expression-mapping':
+            extendedProperties = this.extensionObject;
+            extendedProperties['panelWidth'] = 200;
+            break;
+        default:
+            extendedProperties = {};
         }
         return extendedProperties;
     }

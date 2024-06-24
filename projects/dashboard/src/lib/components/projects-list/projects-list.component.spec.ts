@@ -23,7 +23,7 @@ import { Store } from '@ngrx/store';
 import {
     AmaState, AmaApi, PROJECT_CONTEXT_MENU_OPTIONS, selectLoading,
     selectPagination, selectProjectSummaries, ExportProjectAction,
-    RemoveFromFavoritesProjectAttemptAction, AddToFavoritesProjectAttemptAction, LayoutService
+    LayoutService
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { By } from '@angular/platform-browser';
 import { of, BehaviorSubject } from 'rxjs';
@@ -126,5 +126,10 @@ describe ('Projects List Component', () => {
             projectId: 'mock-project-id',
             projectName: 'mock-project-name'
         });
+    });
+
+    it('should sort by updated column desc by default', () => {
+        expect(component.sorting.key).toEqual('lastModifiedDate');
+        expect(component.sorting.direction).toEqual('desc');
     });
 });

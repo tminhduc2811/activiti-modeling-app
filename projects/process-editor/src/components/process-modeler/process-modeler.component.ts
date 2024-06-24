@@ -17,15 +17,13 @@
 
 import { Component, ElementRef, Input, OnDestroy, OnInit, Output, EventEmitter, Inject, ViewEncapsulation } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil } from 'rxjs/operators';
+import { filter, switchMap, take, takeUntil } from 'rxjs/operators';
 import {
     ProcessContent,
     SnackbarErrorAction,
     ProcessModelerServiceToken,
     ProcessModelerService,
     SetAppDirtyStateAction,
-    BpmnElement,
-    BpmnProperty,
     StatusBarService
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { Store } from '@ngrx/store';
@@ -35,24 +33,24 @@ import {
 } from '../../store/process-editor.actions';
 import { ProcessEntitiesState } from '../../store/process-entities.state';
 import { ProcessDiagramLoaderService } from '../../services/process-diagram-loader.service';
-import { createSelectedElement } from '../../store/process-editor.state';
+import { createSelectedElement, SelectedProcessElement } from '../../store/process-editor.state';
+import { TaskAssignmentService } from '../../services/cardview-properties/task-assignment-item/task-assignment.service';
+import { selectSelectedElement } from '../../store/process-editor.selectors';
 
 @Component({
     selector: 'ama-process-modeler',
-    templateUrl: './process-modeler.component.html',
+    template: '<div class="ama-canvas-editor"></div>',
     styleUrls: ['./process-modeler.component.scss', './process-modeler-bpmnjs.component.scss'],
-    encapsulation: ViewEncapsulation.None,
-    host: { class: 'ama-process-modeler ama-canvas-editor' }
+    encapsulation: ViewEncapsulation.None
 })
 export class ProcessModelerComponent implements OnInit, OnDestroy {
 
-    private static ASSIGNEE = '${initiator}';
-
     diagramData$ = new BehaviorSubject<ProcessContent>(null);
     onDestroy$ = new Subject<void>();
+    currentProcessSelected = '';
 
-    // tslint:disable-next-line
     @Output()
+    // eslint-disable-next-line @angular-eslint/no-output-on-prefix
     onChange = new EventEmitter<any>();
 
     @Input()
@@ -65,10 +63,18 @@ export class ProcessModelerComponent implements OnInit, OnDestroy {
         @Inject(ProcessModelerServiceToken) private processModelerService: ProcessModelerService,
         private processLoaderService: ProcessDiagramLoaderService,
         private canvas: ElementRef,
-        private statusBarService: StatusBarService
+        private statusBarService: StatusBarService,
+        private taskAssignmentService: TaskAssignmentService
     ) { }
 
     ngOnInit() {
+        this.store
+            .select(selectSelectedElement).pipe(
+                filter(element => !!element),
+                take(1))
+            .subscribe((selectedElement: SelectedProcessElement) => {
+                this.currentProcessSelected = selectedElement.id;
+            });
         this.processModelerService.init({
             clickHandler: event => {
                 this.store.dispatch(new SelectModelerElementAction(createSelectedElement(event.element)));
@@ -77,7 +83,6 @@ export class ProcessModelerComponent implements OnInit, OnDestroy {
             changeHandler: event => {
                 this.store.dispatch(new SetAppDirtyStateAction(true));
                 this.onChange.emit(event);
-                this.handleDefaultAssigneeInUserTask(event);
             },
             removeHandler: event =>
                 this.store.dispatch(new RemoveDiagramElementAction(createSelectedElement(event.element))),
@@ -90,15 +95,12 @@ export class ProcessModelerComponent implements OnInit, OnDestroy {
                     );
                 }
             },
-            createHandler: event => {
-                const element = createSelectedElement(event.elements[0]);
-                if (element.type === BpmnElement.UserTask) {
-                    this.processModelerService.updateElementProperty(element.id, BpmnProperty.priority, 0);
-                    this.processModelerService.updateElementProperty(element.id, BpmnProperty.assignee, '${initiator}');
-                }
-                if (element.type === BpmnElement.CallActivity) {
-                    this.processModelerService.updateElementProperty(element.id, BpmnProperty.inheritBusinessKey, true);
-                }
+            createHandler: () => { },
+            copyActionHandler: () => {
+                this.taskAssignmentService.copyActionHandler(this.currentProcessSelected);
+            },
+            pasteActionHandler: event => {
+                this.taskAssignmentService.pasteActionHandler(event, this.currentProcessSelected);
             }
         });
 
@@ -120,60 +122,5 @@ export class ProcessModelerComponent implements OnInit, OnDestroy {
         this.onDestroy$.next();
         this.onDestroy$.complete();
         this.processModelerService.destroy();
-    }
-
-    fitViewPort() {
-        this.processModelerService.fitViewPort();
-    }
-
-    zoomIn() {
-        this.processModelerService.zoomIn();
-    }
-
-    zoomOut() {
-        this.processModelerService.zoomOut();
-    }
-
-    undo() {
-        this.processModelerService.undo();
-    }
-
-    redo() {
-        this.processModelerService.redo();
-    }
-
-    private handleDefaultAssigneeInUserTask(event: any) {
-        this.setDefaultAssigneeInUserTask(event);
-        this.removeDefaultAssigneeFromUserTask(event);
-    }
-
-    private setDefaultAssigneeInUserTask(event: any) {
-        if (event.element.type === BpmnElement.UserTask && this.businessObjectHasNoAssignment(event.element.businessObject)) {
-            this.addDefaultAssignee(event.element.id);
-        }
-    }
-
-    private removeDefaultAssigneeFromUserTask(event: any) {
-        if (event.element.type === BpmnElement.UserTask && event.element.businessObject.assignee === ProcessModelerComponent.ASSIGNEE &&
-            this.businessObjectHasCandidates(event.element.businessObject)) {
-            this.removeDefaultAssignee(event.element.id);
-        }
-    }
-
-    private businessObjectHasNoAssignment(businessObject) {
-        return !businessObject.hasOwnProperty(BpmnProperty.assignee) &&
-            !businessObject.hasOwnProperty(BpmnProperty.candidateUsers) && !businessObject.hasOwnProperty(BpmnProperty.candidateGroups);
-    }
-
-    private businessObjectHasCandidates(businessObject) {
-        return businessObject.hasOwnProperty(BpmnProperty.candidateUsers) || businessObject.hasOwnProperty(BpmnProperty.candidateGroups);
-    }
-
-    private addDefaultAssignee(elementId: string) {
-        this.processModelerService.updateElementProperty(elementId, BpmnProperty.assignee, ProcessModelerComponent.ASSIGNEE);
-    }
-
-    private removeDefaultAssignee(elementId: string) {
-        this.processModelerService.updateElementProperty(elementId, BpmnProperty.assignee, null);
     }
 }

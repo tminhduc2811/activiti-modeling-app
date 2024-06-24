@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 export const primitiveTypesSchema = {
     '$schema': 'https://json-schema.org/draft/2020-12/schema',
     '$id': 'primitiveTypes',
@@ -51,6 +52,9 @@ export const primitiveTypesSchema = {
         },
         {
             '$ref': '#/$defs/primitive/array'
+        },
+        {
+            '$ref': '#/$defs/primitive/execution'
         }
     ],
     '$defs': {
@@ -74,6 +78,7 @@ export const primitiveTypesSchema = {
             },
             'datetime': {
                 'type': 'string',
+                // eslint-disable-next-line max-len
                 'pattern': '^((19|20)[0-9][0-9])[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])[T]([01][0-9]|[2][0-3])[:]([0-5][0-9])[:]([0-5][0-9])([+|-]([01][0-9]|[2][0-3])[:]([0-5][0-9])){0,1}$'
             },
             'node': {
@@ -171,6 +176,9 @@ export const primitiveTypesSchema = {
                 'items': {
                     '$ref': '#/$defs/primitive/json'
                 }
+            },
+            'execution': {
+                'type': 'execution'
             }
         }
     }

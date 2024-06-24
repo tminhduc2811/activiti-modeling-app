@@ -15,19 +15,24 @@
  * limitations under the License.
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { TranslationService, CardViewArrayItem } from '@alfresco/adf-core';
 import { ElementHelper } from '../../bpmn-js/element.helper';
-import { BpmnProperty } from '@alfresco-dbp/modeling-shared/sdk';
+import { AmaState, AssignmentMode, AssignmentType, BpmnProperty, selectSelectedProcess, TaskAssignment, UpdateServiceAssignmentAction } from '@alfresco-dbp/modeling-shared/sdk';
 import { Subject } from 'rxjs';
 import { AssignmentModel, AssignmentSettings } from '../../../components/assignment/assignment-dialog.component';
+import { filter, take, takeUntil } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
 
 @Injectable()
-export class TaskAssignmentService {
+export class TaskAssignmentService implements OnDestroy {
 
     assignmentSubject = new Subject<AssignmentModel>();
+    currentProcessSelected = '';
+    private onDestroy$: Subject<void> = new Subject<void>();
+    copiedAssignments;
 
-    constructor(private translationService: TranslationService) {
+    constructor(private translationService: TranslationService, private store: Store<AmaState>) {
     }
 
     getDisplayValue(element: Bpmn.DiagramElement): CardViewArrayItem[] {
@@ -38,9 +43,9 @@ export class TaskAssignmentService {
     updateDisplayValue(data: AssignmentModel): CardViewArrayItem[] {
         const [ assignee, candidateUsers, candidateGroups ] = data.assignments.map((assignment) => assignment.value);
         return this.prepareDisplayValue(
-                this.convertStringToArray(assignee),
-                this.convertStringToArray(candidateUsers),
-                this.convertStringToArray(candidateGroups)).filter((res) => res.value);
+            this.convertStringToArray(assignee),
+            this.convertStringToArray(candidateUsers),
+            this.convertStringToArray(candidateGroups)).filter((res) => res.value);
     }
 
     getAssignments(element: Bpmn.DiagramElement): AssignmentSettings {
@@ -75,8 +80,8 @@ export class TaskAssignmentService {
         return {
             icon: 'person',
             value: candidateUsers && candidateUsers.length > 0 ? candidateUsers.length === 1 ?
-            this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.USER', { count: 1 }) :
-            this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.USERS', { count: candidateUsers.length }) : undefined
+                this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.USER', { count: 1 }) :
+                this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.USERS', { count: candidateUsers.length }) : undefined
         };
 
     }
@@ -85,8 +90,8 @@ export class TaskAssignmentService {
         return {
             icon: 'group',
             value: candidateGroups && candidateGroups.length > 0 ? candidateGroups.length === 1 ?
-            this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.GROUP', { count: 1 }) :
-            this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.GROUPS', { count: candidateGroups.length }) : undefined
+                this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.GROUP', { count: 1 }) :
+                this.translationService.instant('PROCESS_EDITOR.ELEMENT_PROPERTIES.TASK_ASSIGNMENT.GROUPS', { count: candidateGroups.length }) : undefined
         };
     }
 
@@ -103,6 +108,88 @@ export class TaskAssignmentService {
     }
 
     getProcessIdForElement(element): string {
-      return ElementHelper.getProperty(element, BpmnProperty.processId);
+        return ElementHelper.getProperty(element, BpmnProperty.processId);
+    }
+
+    private updateUserExtension(processUUid: string, selectedElement: any, assignees: AssignmentSettings) {
+        this.store.dispatch(
+            new UpdateServiceAssignmentAction(
+                processUUid,
+                this.currentProcessSelected,
+                selectedElement.businessObject.id,
+                <TaskAssignment>{
+                    type: this.getAssignmentType(assignees, selectedElement.id),
+                    assignment: this.getAssignmentValues(assignees),
+                    id: selectedElement.businessObject.id
+                }
+            )
+        );
+    }
+
+    getCopiedAssignmentType(taskId: string): string {
+        return this.copiedAssignments[taskId]?.type ?? AssignmentType.static;
+    }
+
+    private getAssignmentValues(assignees: AssignmentSettings) {
+        let currentAssignment = '';
+        if (assignees.assignee.length > 0) {
+            currentAssignment = AssignmentMode.assignee;
+        } else if (assignees.candidateUsers.length > 0 || assignees.candidateGroups.length > 0) {
+            currentAssignment = AssignmentMode.candidates;
+        }
+        return currentAssignment;
+    }
+
+    private getAssignmentType(assignees: AssignmentSettings, taskId: string) {
+        let currentAssignment = '';
+        if (assignees.assignee.length > 0) {
+            currentAssignment = assignees.assignee[0];
+        } else if (assignees.candidateUsers.length > 0) {
+            currentAssignment = assignees.candidateUsers[0];
+        } else if (assignees.candidateGroups.length > 0) {
+            currentAssignment = assignees.candidateGroups[0];
+        }
+
+        return currentAssignment.startsWith('${') && currentAssignment.endsWith('}') ?
+            AssignmentType.expression : this.getCopiedAssignmentType(taskId);
+    }
+
+    pasteActionHandler(event, currentSelectedProcess) {
+        this.currentProcessSelected = currentSelectedProcess;
+        const assignees: AssignmentSettings = this.getAssignments(event.descriptor);
+        if (this.isTaskAssigned(assignees)) {
+            this.checkAndUpdateProcessExtension(event.descriptor, assignees);
+        }
+    }
+
+    copyActionHandler(currentSelectedProcess) {
+        this.store.select(selectSelectedProcess)
+            .pipe(
+                filter(model => !!model),
+                take(1)
+            )
+            .pipe(takeUntil(this.onDestroy$))
+            .subscribe(model => {
+                this.copiedAssignments = model.extensions[currentSelectedProcess].assignments;
+            });
+    }
+
+    private isTaskAssigned(assignees: AssignmentSettings): boolean {
+        return assignees.assignee.length > 0 || assignees.candidateUsers.length > 0 || assignees.candidateGroups.length > 0;
+    }
+
+    private checkAndUpdateProcessExtension(selectedElement: any, assignees: AssignmentSettings) {
+        this.store.select(selectSelectedProcess)
+            .pipe(
+                filter(model => !!model),
+                take(1)
+            )
+            .pipe(takeUntil(this.onDestroy$))
+            .subscribe(model => this.updateUserExtension(model.id, selectedElement, assignees));
+    }
+
+    ngOnDestroy() {
+        this.onDestroy$.next();
+        this.onDestroy$.complete();
     }
 }

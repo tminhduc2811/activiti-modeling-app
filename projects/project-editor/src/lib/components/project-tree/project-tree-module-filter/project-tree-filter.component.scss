@@ -1,5 +1,31 @@
 .ama-project-tree-filter {
 
+    .ama-filter-container {
+        display: flex;
+
+        mat-expansion-panel {
+            width: 100%;
+        }
+
+        .ama-add-more-container {
+            margin-top: 4px;
+            position: absolute;
+            right: 10px;
+        }
+    }
+
+    .ama-filter-container .ama-add-more-container {
+        visibility: hidden;
+    }
+
+    .ama-filter-container:hover .ama-add-more-container {
+        visibility: visible;
+    }
+
+    .ama-add-more-container-visible {
+        visibility: visible !important;
+    }
+
     .mat-expansion-panel {
         &-body {
             padding: 0 0 16px 24px;
@@ -46,6 +72,7 @@
         height: 22px;
         line-height: 20px;
         display: inline-block;
+        color: var(--theme-text-color);
 
         &.ama-filter-icon {
             color: var(--theme-primary-color);
@@ -72,10 +99,6 @@
         width: 100%;
     }
 
-    &__create_button {
-        display: none;
-    }
-
     &__active {
         button {
             display: flex;
@@ -83,7 +106,6 @@
             justify-content: flex-end;
         }
     }
-
 
     &__title {
         display: flex;
@@ -97,12 +119,12 @@
     &__button.mat-button {
         flex: 1 0 auto;
         padding: 0 8px;
-        margin-left: 19px;
+        margin-left: 32px;
         text-align: left;
         font-size: 12px;
         white-space: nowrap;
         height: 26px;
-        width: 100%;
+        width: calc(100% - 35px);
         line-height: 26px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -116,7 +138,8 @@
     }
 
     &__category {
-        padding-left: 25px;
+        padding-left: 34px;
+        padding-bottom: 8px;
         font-weight: bolder;
         font-size: 13px;
     }

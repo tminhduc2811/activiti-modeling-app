@@ -23,7 +23,8 @@ import {
     LEAVE_PROJECT,
     CreateConnectorSuccessAction,
     CREATE_CONNECTOR_SUCCESS,
-    SAVE_AS_PROJECT_ATTEMPT
+    SAVE_AS_PROJECT_ATTEMPT,
+    Connector
 } from '@alfresco-dbp/modeling-shared/sdk';
 import { Action } from '@ngrx/store';
 import {
@@ -35,7 +36,11 @@ import {
     GetConnectorsSuccessAction,
     DeleteConnectorSuccessAction,
     GetConnectorSuccessAction,
-    GET_CONNECTOR_SUCCESS
+    GET_CONNECTOR_SUCCESS,
+    DRAFT_UPDATE_CONNECTOR_CONTENT,
+    DRAFT_DELETE_CONNECTOR,
+    DraftUpdateConnectorContentAction,
+    DraftDeleteConnectorAction
 } from './connector-editor.actions';
 
 export function connectorEntitiesReducer(
@@ -43,40 +48,46 @@ export function connectorEntitiesReducer(
     action: Action
 ): ConnectorEntitiesState {
     switch (action.type) {
-        case CREATE_CONNECTOR_SUCCESS:
-            return createConnector(state, <CreateConnectorSuccessAction> action);
+    case CREATE_CONNECTOR_SUCCESS:
+        return createConnector(state, <CreateConnectorSuccessAction> action);
 
-        case GET_CONNECTORS_ATTEMPT:
-            return {
-                ...state,
-                loading: true
-            };
+    case GET_CONNECTORS_ATTEMPT:
+        return {
+            ...state,
+            loading: true
+        };
 
-        case GET_CONNECTORS_SUCCESS:
-            return getConnectorsSuccess(state, <GetConnectorsSuccessAction> action);
+    case GET_CONNECTORS_SUCCESS:
+        return getConnectorsSuccess(state, <GetConnectorsSuccessAction> action);
 
-        case DELETE_CONNECTOR_SUCCESS:
-            return removeConnector(state, <DeleteConnectorSuccessAction> action);
+    case DELETE_CONNECTOR_SUCCESS:
+        return removeConnector(state, <DeleteConnectorSuccessAction> action);
 
-        case UPDATE_CONNECTOR_SUCCESS:
-            return updateConnector(state, <UpdateConnectorSuccessAction>action);
+    case UPDATE_CONNECTOR_SUCCESS:
+        return updateConnector(state, <UpdateConnectorSuccessAction>action);
 
-        case GET_CONNECTOR_SUCCESS:
-            return getConnectorSuccess(state, <GetConnectorSuccessAction>action);
-        case LEAVE_PROJECT:
-            return {
-                ...state,
-                loaded: false
-            };
+    case DRAFT_UPDATE_CONNECTOR_CONTENT:
+        return updateDraftConnector(state, <DraftUpdateConnectorContentAction> action);
 
-        case SAVE_AS_PROJECT_ATTEMPT:
-            return {
-                ...state,
-                loaded: false
-            };
+    case DRAFT_DELETE_CONNECTOR:
+        return deleteDraftConnector(state, <DraftDeleteConnectorAction> action);
 
-        default:
-            return { ...state };
+    case GET_CONNECTOR_SUCCESS:
+        return getConnectorSuccess(state, <GetConnectorSuccessAction>action);
+    case LEAVE_PROJECT:
+        return {
+            ...state,
+            loaded: false
+        };
+
+    case SAVE_AS_PROJECT_ATTEMPT:
+        return {
+            ...state,
+            loaded: false
+        };
+
+    default:
+        return { ...state };
     }
 }
 
@@ -127,4 +138,29 @@ function updateConnector(state: ConnectorEntitiesState, action: UpdateConnectorS
     };
     const { name, description, template } = action.connector.changes;
     return connectorEntityAdapter.updateOne({ ...action.connector, changes: { name, description, template } }, newState);
+}
+
+function updateDraftConnector(state: ConnectorEntitiesState, action: DraftUpdateConnectorContentAction): ConnectorEntitiesState {
+    const newState = {
+        ...state,
+        entityContents: {
+            ...state.entityContents,
+        }
+    };
+    newState.draftEntities.entityContents[action.connector.id] = <ConnectorContent> action.connector.changes ?? state.entityContents[action.connector.id];
+    const { name, description, template } = action.connector.changes ??  state.entities[action.connector.id];
+    newState.draftEntities.entities[action.connector.id] = {
+        ...<Connector>state.entities[action.connector.id],
+        ...{ name: name, description: description, template: template }
+    };
+
+    return connectorEntityAdapter.updateOne({id: <string>'', changes: {}}, newState);
+}
+
+function deleteDraftConnector(state: ConnectorEntitiesState, action: DraftDeleteConnectorAction): ConnectorEntitiesState {
+    const newState = { ...state, entityContents: { ...state.entityContents } };
+    delete newState.draftEntities.entityContents[action.modelId];
+    delete newState.draftEntities.entities[action.modelId];
+
+    return connectorEntityAdapter.updateOne({id: <string>'', changes: {}}, newState);
 }

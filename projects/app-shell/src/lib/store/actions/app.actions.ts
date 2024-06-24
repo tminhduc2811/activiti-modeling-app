@@ -26,7 +26,7 @@ export enum AppActionTypes {
 
 export class AsyncInitAction implements Action {
     readonly type = AppActionTypes.AsyncInit;
-    constructor(public config: { selectedTheme: AppTheme; menuOpened: boolean, showConnectorsWithTemplate: boolean }) {}
+    constructor(public config: { selectedTheme: AppTheme; menuOpened: boolean; showConnectorsWithTemplate: boolean }) {}
 }
 
 export class LogoutAction implements Action {
@@ -36,11 +36,5 @@ export class LogoutAction implements Action {
 
 export class LoggedInAction implements Action {
     readonly type = AppActionTypes.LoggedIn;
-    constructor() {}
-}
-
-export const CLEAR_LOG_HISTORY = '[App] CLEAR_LOG_HISTORY';
-export class ClearLogHistoryAction implements Action {
-    readonly type = CLEAR_LOG_HISTORY;
     constructor() {}
 }

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { VariableMappingBehavior } from '../interfaces/variable-mapping-type.interface';
 
 export type PROJECT_TYPE = 'project';
@@ -30,8 +32,11 @@ export type TRIGGER_TYPE = 'trigger';
 export type FORM_WIDGET_TYPE = 'custom-form-widget';
 export type DATA_TYPE = 'data';
 export type AUTHENTICATION_TYPE = 'authentication';
+export type HXP_DOC_TYPE = 'hxp-document-type';
+export type HXP_MIXIN = 'hxp-mixin';
+export type HXP_SCHEMA = 'hxp-schema';
 export type MODEL_TYPE = PROCESS_TYPE | FORM_TYPE | CONNECTOR_TYPE | DECISION_TABLE_TYPE | UI_TYPE | FILE_TYPE | SCRIPT_TYPE | TRIGGER_TYPE | CUSTOM_MODEL_TYPE
-    | FORM_WIDGET_TYPE | DATA_TYPE | AUTHENTICATION_TYPE;
+| FORM_WIDGET_TYPE | DATA_TYPE | AUTHENTICATION_TYPE | HXP_DOC_TYPE | HXP_MIXIN | HXP_SCHEMA;
 
 export const PROJECT: PROJECT_TYPE = 'project';
 export const CUSTOM_MODEL: CUSTOM_MODEL_TYPE = 'model';
@@ -46,6 +51,9 @@ export const TRIGGER: TRIGGER_TYPE = 'trigger';
 export const FORM_WIDGET: FORM_WIDGET_TYPE = 'custom-form-widget';
 export const DATA: DATA_TYPE = 'data';
 export const AUTHENTICATION: AUTHENTICATION_TYPE = 'authentication';
+export const HXP_DOC_TYPE: HXP_DOC_TYPE = 'hxp-document-type';
+export const HXP_MIXIN: HXP_MIXIN = 'hxp-mixin';
+export const HXP_SCHEMA: HXP_SCHEMA = 'hxp-schema';
 
 export interface Project {
     type: PROJECT_TYPE;
@@ -130,7 +138,7 @@ export interface Model extends MinimalModelSummary {
     description: string;
     version: string;
     applicationId?: string; // To remove, since BE finally returns it
-    type: string;
+    type: MODEL_TYPE;
     creationDate: Date;
     createdBy: string;
     lastModifiedDate: Date;
@@ -140,6 +148,7 @@ export interface Model extends MinimalModelSummary {
 }
 
 export enum ModelScope {
+    // eslint-disable-next-line @typescript-eslint/no-shadow
     PROJECT = 'PROJECT',
     GLOBAL = 'GLOBAL'
 }
@@ -165,7 +174,7 @@ export enum MappingType {
 
 export interface ServiceParameterMapping {
     [name: string]: {
-        type: MappingType,
+        type: MappingType;
         value: any;
     };
 }
@@ -257,6 +266,8 @@ export interface EntityProperty {
     id: string;
     name: string;
     label?: string;
+    display?: boolean;
+    displayName?: string;
     type: string;
     model?: JSONSchemaInfoBasics;
     required?: boolean;
@@ -332,10 +343,12 @@ export interface FormRepresentation {
     description: string;
     version?: number;
     formDefinition?: FormDefinition;
+    confirmMessage?: ConfirmMessage;
     standAlone?: boolean;
     contentForm?: boolean;
     contentType?: string;
     updateMetadataOnSubmit?: boolean;
+    leftLabels?: boolean;
 }
 
 export interface FormTab {
@@ -353,9 +366,14 @@ export interface FormDefinition {
     tabs: FormTab[];
     fields: any[];
     outcomes: FormOutcome[];
-    metadata: {};
+    metadata: any;
     variables: EntityProperties[];
     rules?: any;
+}
+
+export interface ConfirmMessage {
+    show: boolean;
+    message: string;
 }
 
 export interface UiPlugin {
@@ -665,6 +683,7 @@ export interface JSONSchemaInfoBasics {
     exclusiveMinimum?: number;
     maximum?: number;
     exclusiveMaximum?: number;
+    [key: string]: any;
 }
 
 export interface JSONSchemaPropertyBasics {
@@ -700,6 +719,7 @@ export interface ProcessEditorElementVariable {
 export interface ElementVariable extends EntityProperty {
     icon?: string;
     tooltip?: string;
+    onlyForExpression?: boolean;
 }
 
 export interface Data extends Model {
@@ -714,4 +734,16 @@ export enum ExpressionSyntax {
 export interface ReleaseInfo {
     name: string;
     comment?: string;
+}
+
+export interface HxPDocumentType extends Model {
+    type: HXP_DOC_TYPE;
+}
+
+export interface HxPMixin extends Model {
+    type: HXP_MIXIN;
+}
+
+export interface HxPSchema extends Model {
+    type: HXP_SCHEMA;
 }

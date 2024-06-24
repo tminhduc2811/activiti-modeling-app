@@ -16,11 +16,11 @@
  */
 
 import { Routes } from '@angular/router';
-import { ProjectContentComponent } from '../components/project-content/project-content.component';
 import { ProjectNavigationComponent } from '../components/project-navigation/project-navigation.component';
 import { MODEL_EDITOR_ROUTES } from '@alfresco-dbp/modeling-shared/sdk';
+import { ProjectEmptyContentComponent } from '../components/project-empty-content/project-empty-content.component';
 
 export const studioProjectEditorRoutes: Routes = [
-    { path: '', component: ProjectContentComponent, data: { injectTo: MODEL_EDITOR_ROUTES } },
+    { path: '', component: ProjectEmptyContentComponent, data: { injectTo: MODEL_EDITOR_ROUTES } },
     { path: '', component: ProjectNavigationComponent, data: { injectTo: MODEL_EDITOR_ROUTES }, outlet: 'left-sidebar' }
 ];

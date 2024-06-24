@@ -24,7 +24,7 @@ import {
     AmaState, Project, OpenConfirmDialogAction, MODELER_NAME_REGEX, Pagination, ServerSideSorting,
     SearchQuery, OpenEntityDialogAction, ProjectContextMenuOption, PROJECT_CONTEXT_MENU_OPTIONS,
     ProjectContextMenuActionClass, selectLoading, selectPagination, selectProjectSummaries,
-     GetProjectsAttemptAction, DeleteProjectAttemptAction, UpdateProjectAttemptAction, OpenSaveAsProjectDialogAction,
+    GetProjectsAttemptAction, DeleteProjectAttemptAction, UpdateProjectAttemptAction, OpenSaveAsProjectDialogAction,
     SaveAsProjectAttemptAction, ExportProjectAction,
     GetFavoriteProjectsAttemptAction, selectFavoriteProjectSummaries, LayoutService
 } from '@alfresco-dbp/modeling-shared/sdk';
@@ -32,8 +32,8 @@ import { MatTableDataSource } from '@angular/material/table';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 
-const DEFAULT_SORT_KEY = 'name';
-const DEFAULT_SORT_DIRECTION = 'asc';
+const DEFAULT_SORT_KEY = 'lastModifiedDate';
+const DEFAULT_SORT_DIRECTION = 'desc';
 
 @Component({
     selector: 'ama-projects-list',
@@ -45,7 +45,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
     dataSource$: Observable<MatTableDataSource<Partial<Project>>>;
     loading$: Observable<boolean>;
     pagination$: Observable<Pagination>;
-    displayedColumns = ['name', 'creationDate', 'createdBy', 'lastModifiedDate', 'version', 'menu', 'favorite'];
+    displayedColumns = ['name', 'lastModifiedDate', 'creationDate', 'createdBy', 'version', 'menu', 'favorite'];
     pageSizeOptions = [10, 25, 50, 100, 1000];
     sorting: ServerSideSorting = {
         key: DEFAULT_SORT_KEY,
@@ -86,7 +86,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
                 this.sorting = this.parseSorting(params.sort);
                 this.search.value = params[this.search.key];
                 this.loadProjects();
-        });
+            });
 
         this.loading$ = this.store.select(selectLoading);
         this.pagination$ = this.store.select(selectPagination);
@@ -126,7 +126,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
         const maxItems = event.pageSize;
         const skipCount = event.pageSize === pagination.maxItems ? event.pageSize * event.pageIndex : 0;
 
-        this.router.navigate(
+        void this.router.navigate(
             ['dashboard', this.redirectTo()],
             {
                 queryParams: { maxItems, skipCount },
@@ -136,7 +136,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
     }
 
     onSearchChanged(value: string) {
-        this.router.navigate(
+        void this.router.navigate(
             ['dashboard', this.redirectTo()],
             {
                 queryParams: {
@@ -150,7 +150,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
     }
 
     onSortChange(sort: Sort) {
-        this.router.navigate(
+        void this.router.navigate(
             ['dashboard', this.redirectTo()],
             {
                 queryParams: {
@@ -171,7 +171,7 @@ export class ProjectsListComponent implements OnInit, OnDestroy {
     }
 
     rowSelected(item: Partial<Project>): void {
-        this.router.navigate(['projects', item.id]);
+        void this.router.navigate(['projects', item.id]);
     }
 
     editRow(item: Partial<Project>): void {

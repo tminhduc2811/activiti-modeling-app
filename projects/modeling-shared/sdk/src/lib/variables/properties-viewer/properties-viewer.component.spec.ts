@@ -319,6 +319,62 @@ describe('PropertiesViewerComponent', () => {
         expect(component.error).toBe(false);
     });
 
+    it('should be able to show display name visibility toggle after choosing specific type', () => {
+        fixture.detectChanges();
+        const addButton = fixture.nativeElement.querySelector('[data-automation-id="add-variable"]');
+        addButton.dispatchEvent(new Event('click'));
+        fixture.detectChanges();
+
+        component.form.type = 'string';
+        component.allowExpressions = true;
+        fixture.detectChanges();
+
+        const toggle = fixture.debugElement.query(By.css('.ama-display-name-toggle'));
+        expect(toggle).toBeTruthy();
+
+        component.form.type = 'json';
+        fixture.detectChanges();
+
+        const toggle2 = fixture.debugElement.query(By.css('.ama-display-name-toggle'));
+        expect(toggle2).not.toBeTruthy();
+    });
+
+    it('should be able to choose a display name', () => {
+        fixture.detectChanges();
+        const addButton = fixture.nativeElement.querySelector('[data-automation-id="add-variable"]');
+        addButton.dispatchEvent(new Event('click'));
+        fixture.detectChanges();
+
+        component.form.type = 'string';
+        component.allowExpressions = true;
+        fixture.detectChanges();
+
+        const visibleToggle = fixture.debugElement.query(By.css('.ama-display-name-toggle'));
+        visibleToggle.triggerEventHandler('change', { value: true });
+        fixture.detectChanges();
+
+        const displayNameInput = fixture.nativeElement.querySelector('[data-automation-id="ama-display-name-input"]');
+        expect(displayNameInput).toBeTruthy();
+
+        const variablesServiceSpy = spyOn(service, 'sendData');
+
+        component.form.displayName = 'newColumn';
+        component.form.name = 'name';
+        displayNameInput.dispatchEvent(new Event('keyup'));
+
+        const expected = JSON.stringify({
+            'generated-uuid': {
+                'id': 'generated-uuid',
+                'name': 'name',
+                'type': 'string',
+                'required': false,
+                'display': true,
+                'displayName': 'newColumn'
+            }}, null, 2);
+
+        expect(variablesServiceSpy).toHaveBeenLastCalledWith(expected, null);
+    });
+
     it('should delete process variable without a name', () => {
         fixture.detectChanges();
         const addButton: HTMLElement = fixture.nativeElement.querySelector('[data-automation-id="add-variable"]');
@@ -671,6 +727,56 @@ describe('PropertiesViewerComponent', () => {
         component.saveChanges();
         expect(component.error).toBe(true);
         expect(variablesServiceSpy).toHaveBeenCalledWith(JSON.stringify(jsonData, null, 2), 'SDK.VARIABLES_EDITOR.ERRORS.EMPTY_TYPE');
+    });
+
+    it('should send data with error when display name is not provided', () => {
+        const jsonData: EntityProperties = {
+            '46cba478-9afe-42c1-8993-2ad416a636c5': {
+                'id': '46cba478-9afe-42c1-8993-2ad416a636c5',
+                'name': 'newName',
+                'type': 'date',
+                'required': false,
+                'model': {
+                    '$ref': '#/$defs/primitive/date'
+                },
+                'display': true,
+            },
+        };
+
+        const variablesServiceSpy = spyOn(service, 'sendData');
+
+        component.data = jsonData;
+        component.form.display = true;
+        component.form.name = 'name';
+        component.form.type = 'string';
+
+        component.saveChanges();
+
+        expect(component.error).toBe(true);
+        expect(variablesServiceSpy).toHaveBeenCalledWith(JSON.stringify(jsonData, null, 2), 'SDK.VARIABLES_EDITOR.ERRORS.EMPTY_DISPLAY_NAME');
+    });
+
+    it('should show correct row information in the properties section when the row is selected', async() => {
+        const changes = { filterValue: new SimpleChange(null, 'var', false) };
+        component.ngOnChanges(changes);
+        await fixture.whenStable();
+        component.filterValue = 'var';
+        fixture.detectChanges();
+        await fixture.whenStable();
+
+        expect(component.dataSource.filteredData).toEqual(Object.values(data));
+
+        const var1 = fixture.debugElement.query(By.css(`[data-automation-id="variable-name-cell-var1"]`)).nativeElement;
+        var1.click();
+        fixture.detectChanges();
+
+        expect(component.form.name).toEqual('var1');
+
+        const var2 = fixture.debugElement.query(By.css(`[data-automation-id="variable-name-cell-var2"]`)).nativeElement;
+        var2.click();
+        fixture.detectChanges();
+
+        expect(component.form.name).toEqual('var2');
     });
 
 });

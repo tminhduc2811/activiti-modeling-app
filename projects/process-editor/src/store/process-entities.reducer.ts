@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable max-lines */
+
 import { Action } from '@ngrx/store';
 import {
     GET_PROCESSES_ATTEMPT,
@@ -33,7 +35,11 @@ import {
     REMOVE_ELEMENT_MAPPING,
     RemoveElementMappingAction,
     DELETE_PROCESS_EXTENSION,
-    DeleteProcessExtensionAction
+    DeleteProcessExtensionAction,
+    DraftUpdateProcessContentAction,
+    DraftDeleteProcessAction,
+    DRAFT_UPDATE_PROCESS_CONTENT,
+    DRAFT_DELETE_PROCESS
 } from './process-editor.actions';
 import { UPDATE_PROCESS_VARIABLES, UpdateProcessVariablesAction } from './process-variables.actions';
 import { ProcessEntitiesState, initialProcessEntitiesState, processAdapter } from './process-entities.state';
@@ -60,59 +66,65 @@ export function processEntitiesReducer(
     action: Action
 ): ProcessEntitiesState {
     switch (action.type) {
-        case CREATE_PROCESS_SUCCESS:
-            return createProcess(state, <CreateProcessSuccessAction>action);
+    case CREATE_PROCESS_SUCCESS:
+        return createProcess(state, <CreateProcessSuccessAction>action);
 
-        case GET_PROCESSES_ATTEMPT:
-            return { ...state, loading: true };
+    case GET_PROCESSES_ATTEMPT:
+        return { ...state, loading: true };
 
-        case GET_PROCESSES_SUCCESS:
-            return getProcessesSuccess(state, <GetProcessesSuccessAction>action);
+    case GET_PROCESSES_SUCCESS:
+        return getProcessesSuccess(state, <GetProcessesSuccessAction>action);
 
-        case DELETE_PROCESS_SUCCESS:
-            return removeProcess(state, <DeleteProcessSuccessAction>action);
+    case DELETE_PROCESS_SUCCESS:
+        return removeProcess(state, <DeleteProcessSuccessAction>action);
 
-        case UPDATE_PROCESS_SUCCESS:
-            return updateProcess(state, <UpdateProcessSuccessAction>action);
+    case UPDATE_PROCESS_SUCCESS:
+        return updateProcess(state, <UpdateProcessSuccessAction>action);
 
-        case GET_PROCESS_SUCCESS:
-            return getProcessSuccess(state, <GetProcessSuccessAction>action);
+    case DRAFT_UPDATE_PROCESS_CONTENT:
+        return updateDraftProcess(state, <DraftUpdateProcessContentAction> action);
 
-        case UPDATE_PROCESS_VARIABLES:
-            return updateProcessVariables(state, <UpdateProcessVariablesAction>action);
+    case DRAFT_DELETE_PROCESS:
+        return deleteDraftProcess(state, <DraftDeleteProcessAction> action);
 
-        case UPDATE_SERVICE_PARAMETERS:
-            return updateProcessVariablesMapping(state, <UpdateServiceParametersAction>action);
+    case GET_PROCESS_SUCCESS:
+        return getProcessSuccess(state, <GetProcessSuccessAction>action);
 
-        case UPDATE_TASK_ASSIGNMENTS:
-            return updateProcessTaskAssignments(state, <UpdateServiceAssignmentAction>action);
+    case UPDATE_PROCESS_VARIABLES:
+        return updateProcessVariables(state, <UpdateProcessVariablesAction>action);
 
-        case UPDATE_TASK_TEMPLATE:
-            return updateUserTaskTemplate(state, <UpdateUserTaskTemplateAction>action);
+    case UPDATE_SERVICE_PARAMETERS:
+        return updateProcessVariablesMapping(state, <UpdateServiceParametersAction>action);
 
-        case UPDATE_PROCESS_EXTENSIONS:
-            return updateExtensions(state, <UpdateProcessExtensionsAction>action);
+    case UPDATE_TASK_ASSIGNMENTS:
+        return updateProcessTaskAssignments(state, <UpdateServiceAssignmentAction>action);
 
-        case DELETE_PROCESS_EXTENSION:
-            return deleteExtensions(state, <DeleteProcessExtensionAction>action);
+    case UPDATE_TASK_TEMPLATE:
+        return updateUserTaskTemplate(state, <UpdateUserTaskTemplateAction>action);
 
-        case REMOVE_ELEMENT_MAPPING:
-            return removeElementMapping(state, <RemoveElementMappingAction>action);
+    case UPDATE_PROCESS_EXTENSIONS:
+        return updateExtensions(state, <UpdateProcessExtensionsAction>action);
 
-        case LEAVE_PROJECT:
-            return {
-                ...state,
-                loaded: false
-            };
+    case DELETE_PROCESS_EXTENSION:
+        return deleteExtensions(state, <DeleteProcessExtensionAction>action);
 
-        case SAVE_AS_PROJECT_ATTEMPT:
-            return {
-                ...state,
-                loaded: false
-            };
+    case REMOVE_ELEMENT_MAPPING:
+        return removeElementMapping(state, <RemoveElementMappingAction>action);
 
-        default:
-            return { ...state };
+    case LEAVE_PROJECT:
+        return {
+            ...state,
+            loaded: false
+        };
+
+    case SAVE_AS_PROJECT_ATTEMPT:
+        return {
+            ...state,
+            loaded: false
+        };
+
+    default:
+        return { ...state };
     }
 }
 
@@ -124,20 +136,34 @@ function removeElementMapping(state: ProcessEntitiesState, action: RemoveElement
 
     if (mappings && mappings[action.elementId]) {
         delete newState.entities[action.processModelId].extensions[action.bpmnProcessElementId].mappings[action.elementId];
+        delete newState.draftEntities?.entities[action.processModelId]?.extensions[action.bpmnProcessElementId].mappings[action.elementId];
     }
 
     if (constants && constants[action.elementId]) {
         delete newState.entities[action.processModelId].extensions[action.bpmnProcessElementId].constants[action.elementId];
+        delete newState.draftEntities?.entities[action.processModelId]?.extensions[action.bpmnProcessElementId].constants[action.elementId];
     }
 
     if (assignments && assignments[action.elementId]) {
         delete newState.entities[action.processModelId].extensions[action.bpmnProcessElementId].assignments[action.elementId];
+        delete newState.draftEntities?.entities[action.processModelId]?.extensions[action.bpmnProcessElementId].assignments[action.elementId];
     }
 
     return newState;
 }
 
 function updateExtensions(state: ProcessEntitiesState, action: UpdateProcessExtensionsAction): ProcessEntitiesState {
+    const draftEntities = {
+        ...state.draftEntities,
+        entities: {
+            ...state.draftEntities.entities,
+            [action.payload.modelId]: {
+                ...state.entities[action.payload.modelId],
+                ...state.draftEntities.entities[action.payload.modelId],
+                extensions: action.payload.extensions
+            }
+        }
+    };
     return {
         ...state,
         entities: {
@@ -145,13 +171,30 @@ function updateExtensions(state: ProcessEntitiesState, action: UpdateProcessExte
                 ...state.entities[action.payload.modelId],
                 extensions: action.payload.extensions
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }
 
 function deleteExtensions(state: ProcessEntitiesState, action: DeleteProcessExtensionAction): ProcessEntitiesState {
     const entity = cloneDeep(state.entities[action.processId]);
     delete entity.extensions[action.bpmnProcessId];
+    let draftEntity;
+    let draftEntities = { ...state.draftEntities };
+    if (state.draftEntities?.entityContents[action.processId]) {
+        draftEntity = cloneDeep(state.draftEntities.entities[action.processId]);
+        delete draftEntity.extensions[action.bpmnProcessId];
+        draftEntities = {
+            ...state.draftEntities,
+            entities: {
+                ...state.draftEntities.entities,
+                [action.processId]: {
+                    ...state.entities[action.processId],
+                    ...draftEntity
+                }
+            }
+        };
+    }
     return {
         ...state,
         entities: {
@@ -159,7 +202,8 @@ function deleteExtensions(state: ProcessEntitiesState, action: DeleteProcessExte
             [action.processId]: {
                 ...entity
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }
 
@@ -176,6 +220,17 @@ function updateProcessVariables(state: ProcessEntitiesState, action: UpdateProce
     removeUpdatedPropertyMappings(newProcessExtensions, oldProperties);
     removeDeletedPropertyMapping(newProcessExtensions, oldProperties);
 
+    const draftEntities = {
+        ...state.draftEntities,
+        entities: {
+            ...state.draftEntities.entities,
+            [action.payload.modelId]: {
+                ...state.entities[action.payload.modelId],
+                ...state.draftEntities.entities[action.payload.modelId],
+                extensions: newExtensions
+            }
+        }
+    };
     return {
         ...state,
         entities: {
@@ -184,7 +239,8 @@ function updateProcessVariables(state: ProcessEntitiesState, action: UpdateProce
                 ...state.entities[action.payload.modelId],
                 extensions: newExtensions
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }
 
@@ -200,9 +256,9 @@ function removeUpdatedPropertyMappings(newProcessExtensions: ProcessExtensionsCo
 }
 
 function removeDeletedPropertyMapping(newProcessExtensions: ProcessExtensionsContent, oldProperties: EntityProperties) {
-    const deletedProperties = Object.keys(oldProperties).filter((oldProperty) => {
-        return Object.keys(newProcessExtensions.properties).findIndex(newProperty => newProperty === oldProperty) === -1;
-    });
+    const deletedProperties = Object.keys(oldProperties).filter(
+        (oldProperty) => Object.keys(newProcessExtensions.properties).findIndex(newProperty => newProperty === oldProperty) === -1
+    );
     Object.values(deletedProperties).forEach((oldPropertyId) => {
         Object.keys(newProcessExtensions.mappings).forEach((elementId) => {
             removeParamMappings(newProcessExtensions.mappings, elementId, oldProperties[oldPropertyId].name);
@@ -273,7 +329,17 @@ function updateProcessVariablesMapping(state: ProcessEntitiesState, action: Upda
     if (action.constants) {
         newExtensions = processExtensionsModel.setConstants(action.processId, action.serviceId, action.constants);
     }
-
+    const draftEntities = {
+        ...state.draftEntities,
+        entities: {
+            ...state.draftEntities.entities,
+            [action.modelId]: {
+                ...state.entities[action.modelId],
+                ...state.draftEntities.entities[action.modelId],
+                extensions: newExtensions
+            }
+        }
+    };
     return {
         ...state,
         entities: {
@@ -281,7 +347,8 @@ function updateProcessVariablesMapping(state: ProcessEntitiesState, action: Upda
                 ...state.entities[action.modelId],
                 extensions: newExtensions
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }
 
@@ -289,6 +356,17 @@ function updateProcessTaskAssignments(state: ProcessEntitiesState, action: Updat
     const oldExtensions = cloneDeep(state.entities[action.modelId].extensions);
     const newExtensions = new ProcessExtensionsModel(oldExtensions).setAssignments(action.processId, action.serviceId, action.taskAssignment);
 
+    const draftEntities = {
+        ...state.draftEntities,
+        entities: {
+            ...state.draftEntities.entities,
+            [action.modelId]: {
+                ...state.entities[action.modelId],
+                ...state.draftEntities.entities[action.modelId],
+                extensions: newExtensions
+            }
+        }
+    };
     return {
         ...state,
         entities: {
@@ -296,7 +374,8 @@ function updateProcessTaskAssignments(state: ProcessEntitiesState, action: Updat
                 ...state.entities[action.modelId],
                 extensions: newExtensions
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }
 
@@ -347,6 +426,27 @@ function updateProcess(state: ProcessEntitiesState, action: UpdateProcessSuccess
     return processAdapter.updateOne({ ...action.payload, changes: action.payload.changes }, newState);
 }
 
+function updateDraftProcess(state: ProcessEntitiesState, action: DraftUpdateProcessContentAction): ProcessEntitiesState {
+    const newState = {
+        ...state,
+        entityContents: {
+            ...state.entityContents,
+        }
+    };
+    newState.draftEntities.entityContents[action.payload.id] = action.content;
+    newState.draftEntities.entities[action.payload.id] = { ...state.entities[action.payload.id], ...action.payload.changes, version: action.payload.changes.version };
+
+    return processAdapter.updateOne({id: <string>'', changes: {}}, newState);
+}
+
+function deleteDraftProcess(state: ProcessEntitiesState, action: DraftDeleteProcessAction): ProcessEntitiesState {
+    const newState = { ...state, entityContents: { ...state.entityContents } };
+    delete newState.draftEntities.entityContents[action.modelId];
+    delete newState.draftEntities.entities[action.modelId];
+
+    return processAdapter.updateOne({id: <string>'', changes: {}}, newState);
+}
+
 function updateUserTaskTemplate(state: ProcessEntitiesState, action: UpdateUserTaskTemplateAction): ProcessEntitiesState {
     const oldExtensions = cloneDeep(state.entities[action.modelId].extensions);
     const newExtensions = new ProcessExtensionsModel(oldExtensions).setTemplate(
@@ -355,6 +455,18 @@ function updateUserTaskTemplate(state: ProcessEntitiesState, action: UpdateUserT
         action.taskTemplate
     );
 
+    const draftEntities = {
+        ...state.draftEntities,
+        entities: {
+            ...state.draftEntities.entities,
+            [action.modelId]: {
+                ...state.entities[action.modelId],
+                ...state.draftEntities.entities[action.modelId],
+                extensions: newExtensions
+            }
+        }
+    };
+
     return {
         ...state,
         entities: {
@@ -362,6 +474,7 @@ function updateUserTaskTemplate(state: ProcessEntitiesState, action: UpdateUserT
                 ...state.entities[action.modelId],
                 extensions: newExtensions
             }
-        }
+        },
+        draftEntities: draftEntities
     };
 }

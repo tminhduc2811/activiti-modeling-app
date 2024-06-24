@@ -34,7 +34,7 @@ export interface ModeledObjectChanges {
 })
 export class PropertiesViewerModeledObjectInputComponent implements OnChanges {
 
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     @Output() valueChanges: EventEmitter<ModeledObjectChanges> = new EventEmitter();
     @Output() valid: EventEmitter<boolean> = new EventEmitter();
     @Input() value: any;
@@ -161,7 +161,7 @@ export class PropertiesViewerModeledObjectInputComponent implements OnChanges {
         if (obj instanceof Object) {
             copy = {};
             for (const attr in obj) {
-                if (obj.hasOwnProperty(attr)) {
+                if (Object.prototype.hasOwnProperty.call(obj, attr)) {
                     (<any>copy)[attr] = this.deepCopy(obj[attr]);
                 }
             }
